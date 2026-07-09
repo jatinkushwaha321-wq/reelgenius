@@ -1,103 +1,176 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { motion } from 'framer-motion';
+import { Sparkles, TrendingUp, Film, Palette, LayoutGrid, Brain } from 'lucide-react';
+import Link from 'next/link';
+
+const features = [
+  {
+    icon: Sparkles,
+    title: 'AI Profile Analysis',
+    description:
+      'Enter any Instagram username and get instant AI-powered insights into content niche, audience persona, and brand identity.',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Content Strategy Planner',
+    description:
+      'Generate weekly and monthly content strategies with personalized ideas that never repeat, powered by AI memory.',
+  },
+  {
+    icon: Film,
+    title: 'Script Studio',
+    description:
+      'Turn any idea into a production-ready script with hooks, shot lists, camera angles, B-roll suggestions, and captions.',
+  },
+  {
+    icon: Palette,
+    title: 'Cover Designer',
+    description:
+      'Get detailed thumbnail concepts with layouts, color palettes, composition guidelines, and copy-pasteable AI prompts.',
+  },
+  {
+    icon: LayoutGrid,
+    title: 'Content Pipeline',
+    description:
+      'Track every piece of content from idea to published with a visual Kanban board across 7 production stages.',
+  },
+  {
+    icon: Brain,
+    title: 'AI Memory',
+    description:
+      'ReelGenius learns your style, remembers past content, and ensures every new idea is fresh and on-brand.',
+  },
+];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.3,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: 'easeOut' },
+  },
+};
+
+export default function LandingPage() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="relative min-h-screen overflow-hidden noise-bg">
+      {/* Animated background gradient glow orbs */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -left-40 -top-40 h-80 w-80 rounded-full bg-purple-600/20 blur-[120px] animate-pulse-glow" />
+        <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-cyan-500/15 blur-[120px] animate-pulse-glow" style={{ animationDelay: '1s' }} />
+        <div className="absolute -bottom-40 left-1/3 h-80 w-80 rounded-full bg-amber-500/10 blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      {/* Content wrapper */}
+      <div className="relative z-10">
+        {/* Navigation Header */}
+        <nav className="flex items-center justify-between px-6 py-6 md:px-12">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-white tracking-tight">ReelGenius</span>
+          </div>
+          <Link
+            href="/login"
+            className="rounded-lg border border-white/10 bg-white/5 px-5 py-2 text-sm font-medium text-white transition-all hover:bg-white/10 hover:border-white/20"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+            Sign In
+          </Link>
+        </nav>
+
+        {/* Hero Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+          className="mx-auto max-w-4xl px-6 pb-12 pt-20 text-center md:pt-32"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-muted-foreground">
+            <Sparkles className="h-4 w-4 text-amber" />
+            <span>AI-Powered Content Intelligence</span>
+          </div>
+
+          <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight md:text-7xl">
+            Your Content,{' '}
+            <span className="gradient-text">Supercharged</span>
+          </h1>
+
+          <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+            ReelGenius analyzes your Instagram presence, generates personalized content
+            strategies, writes production-ready scripts, and tracks your entire creative
+            pipeline — all powered by AI that learns your unique style.
+          </p>
+
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 rounded-xl gradient-primary px-8 py-3.5 text-base font-semibold text-white shadow-lg transition-all hover:opacity-90 glow-primary"
+            >
+              Get Started Free
+              <TrendingUp className="h-5 w-5" />
+            </Link>
+            <Link
+              href="#features"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-8 py-3.5 text-base font-medium text-white transition-all hover:bg-white/10"
+            >
+              See Features
+            </Link>
+          </div>
+        </motion.section>
+
+        {/* Features Grid */}
+        <motion.section
+          id="features"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-100px' }}
+          className="mx-auto max-w-6xl px-6 pb-24 pt-12"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <motion.div variants={itemVariants} className="mb-12 text-center">
+            <h2 className="mb-3 text-3xl font-bold md:text-4xl">Everything You Need to Create</h2>
+            <p className="text-muted-foreground">
+              From analysis to published content — one intelligent platform.
+            </p>
+          </motion.div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature) => (
+              <motion.div
+                key={feature.title}
+                variants={itemVariants}
+                className="group rounded-xl glass glass-hover p-6 transition-all duration-300"
+              >
+                <div className="mb-4 inline-flex rounded-lg bg-primary/10 p-2.5">
+                  <feature.icon className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="mb-2 text-lg font-semibold text-white">{feature.title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {feature.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Footer */}
+        <footer className="border-t border-white/5 py-8 text-center text-sm text-muted-foreground">
+          <p>Built with Next.js, Tailwind CSS, and Google Gemini AI</p>
+        </footer>
+      </div>
+    </main>
   );
 }

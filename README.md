@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🎬 ReelGenius
 
-## Getting Started
+ReelGenius is a production-grade AI-powered SaaS platform designed to assist Instagram creators in analyzing profiles, planning weekly/monthly content strategies, generating scripts, designing visual cover blueprints, and tracking content items through a 7-stage Kanban pipeline.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🛠️ Technology Stack
+
+*   **Framework**: Next.js 15 (App Router)
+*   **Language**: JavaScript (ES2024)
+*   **Styling & UI**: Tailwind CSS v4, shadcn/ui, Framer Motion
+*   **Database**: MongoDB Atlas + Mongoose
+*   **State Management**: Zustand
+*   **AI Engine**: Google Gemini API (`@google/genai` v2 SDK)
+*   **Auth**: Auth.js v5 (Credentials Provider)
+
+---
+
+## 📁 Folder Structure
+
+```
+reelgenius/
+├── src/
+│   ├── app/                    # Next.js App Router Segment layouts & API routes
+│   │   ├── (auth)/             # Login and Register pages route grouping
+│   │   ├── dashboard/          # Authenticated creator hubs (analyzer, strategy, tracker)
+│   │   └── api/                # Serverless controllers & rate-limited AI endpoints
+│   ├── components/             # Modular React rendering components
+│   │   ├── ui/                 # Core styling primitives (buttons, inputs)
+│   │   ├── shared/             # App-wide widgets (EmptyState, PageHeader)
+│   │   └── layout/             # Structure shells (Sidebar, Header)
+│   ├── lib/                    # Shared helper hooks, stores, and service engines
+│   │   ├── instagram/          # Service factory adapters (Mock/RapidAPI)
+│   │   ├── prompts/            # Isolated Gemini LLM prompts templates
+│   │   └── validations/        # Unified Zod data-integrity validation rules
+│   └── models/                 # Mongoose collection declarations
+└── public/                     # Static media payloads
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🚀 Getting Started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Installation
+Clone the repository, navigate to the folder, and install packages:
+```bash
+npm install
+```
 
-## Learn More
+### 2. Configure Environment Variables
+Copy `.env.example` to `.env.local` and populate the keys:
+```bash
+cp .env.example .env.local
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Run Development Server
+Start the local server with Turbopack:
+```bash
+npm run dev
+```
+Open `http://localhost:3000` to preview.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔒 V1 Scope Boundaries
 
-## Deploy on Vercel
+Features explicitly completed in V1:
+*   Standard Credentials Registration & Login
+*   Mock Instagram profile retrieval adapter
+*   Gemini AI Content Strategy & Script generators
+*   Embed Cover Design Layouts
+*   7-Stage Content Pipeline Board (Kanban drag-and-drop)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Features deferred to V2:
+*   AI Interactive Chat console
+*   OAuth logins (Google/GitHub)
+*   Midjourney/DALL-E image generators
+*   Database-backed creator metrics panel
