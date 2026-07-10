@@ -2,9 +2,11 @@
 
 import { Menu, User } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { useUIStore } from '@/lib/store';
 
 export function Header() {
   const pathname = usePathname();
+  const { toggleSidebar } = useUIStore();
   
   const getTitle = () => {
     const segment = pathname.split('/').pop();
@@ -20,7 +22,11 @@ export function Header() {
   return (
     <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 sticky top-0 bg-[#0a0a1a]/85 backdrop-blur-md z-20">
       <div className="flex items-center gap-3">
-        <button className="md:hidden p-1.5 rounded-md border border-white/5 text-muted-foreground hover:text-white cursor-pointer">
+        <button 
+          onClick={toggleSidebar}
+          aria-label="Open sidebar menu"
+          className="md:hidden p-1.5 rounded-md border border-white/5 text-muted-foreground hover:text-white cursor-pointer"
+        >
           <Menu className="h-5 w-5" />
         </button>
         <h2 className="text-lg font-semibold text-white tracking-tight">{getTitle()}</h2>

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const registerSchema = z.zodObject || z.object({
+export const registerSchema = z.object({
   name: z
     .string()
     .min(2, { message: 'Name must be at least 2 characters long' })
@@ -17,7 +17,7 @@ export const registerSchema = z.zodObject || z.object({
     .max(100, { message: 'Password cannot exceed 100 characters' }),
 });
 
-export const loginSchema = z.zodObject || z.object({
+export const loginSchema = z.object({
   email: z
     .string()
     .email({ message: 'Invalid email address format' })

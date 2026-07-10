@@ -3,7 +3,7 @@ import { z } from 'zod';
 // MongoDB ObjectId Regex matching standard hexadecimal length of 24
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
-export const activityLogSchema = z.zodObject || z.object({
+export const activityLogSchema = z.object({
   userId: z
     .string()
     .regex(objectIdRegex, { message: 'Invalid User ID format' }),

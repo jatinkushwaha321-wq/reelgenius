@@ -13,21 +13,21 @@ export default function DashboardHome() {
         description="Welcome to your creator console. Plan, script, and manage your Instagram presence."
       />
 
-      {/* Placeholder Stat Cards */}
+      {/* Responsive Stat Cards with increased padding (p-8) */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="glass p-6 rounded-xl flex flex-col gap-2">
+        <div className="glass p-8 rounded-xl flex flex-col gap-2">
           <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Total Ideas</span>
           <span className="text-3xl font-bold text-white">0</span>
         </div>
-        <div className="glass p-6 rounded-xl flex flex-col gap-2">
+        <div className="glass p-8 rounded-xl flex flex-col gap-2">
           <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Scripts Written</span>
           <span className="text-3xl font-bold text-white">0</span>
         </div>
-        <div className="glass p-6 rounded-xl flex flex-col gap-2">
+        <div className="glass p-8 rounded-xl flex flex-col gap-2">
           <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">In Pipeline</span>
           <span className="text-3xl font-bold text-white">0</span>
         </div>
-        <div className="glass p-6 rounded-xl flex flex-col gap-2">
+        <div className="glass p-8 rounded-xl flex flex-col gap-2">
           <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Published</span>
           <span className="text-3xl font-bold text-white">0</span>
         </div>

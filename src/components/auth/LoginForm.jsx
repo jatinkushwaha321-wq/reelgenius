@@ -73,10 +73,15 @@ export function LoginForm() {
         password: validation.data.password,
         redirect: false,
       });
+      console.log(result);
 
       // Assert successful authentication result
-      if (!result?.ok) {
-        throw new Error('Invalid email or password');
+      if (result?.error) {
+        if (result.error === "CredentialsSignin") {
+          throw new Error("Invalid email or password");
+        }
+
+        throw new Error("Authentication failed");
       }
 
       // 4. Route to dashboard and force a refresh to sync active session

@@ -78,6 +78,15 @@ export async function POST(request) {
       201
     );
   } catch (error) {
+    // Catch Mongoose unique constraint duplicate write violations (E11000)
+    if (error.code === 11000) {
+      return errorResponse(
+        'An account with this email address already exists',
+        'EMAIL_ALREADY_EXISTS',
+        null,
+        409
+      );
+    }
     console.error('Unhandled registration error:', error);
     return errorResponse(
       'Internal server error during registration',
