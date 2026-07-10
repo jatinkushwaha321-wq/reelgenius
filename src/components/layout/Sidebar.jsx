@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, LayoutDashboard, Search, Calendar, Film, Palette, Kanban, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
+import { Sparkles, LayoutDashboard, Search, Calendar, Film, Palette, Kanban, ChevronLeft, ChevronRight, LogOut, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { useUIStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +21,19 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar } = useUIStore();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Trigger Auth.js session sign-out sequence
+  const handleSignOut = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await signOut({ callbackUrl: '/login' });
+    } catch (error) {
+      console.error('Logout operation failed:', error);
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <motion.aside
@@ -38,7 +53,8 @@ export function Sidebar() {
         </div>
         <button
           onClick={toggleSidebar}
-          className="p-1 rounded-md border border-white/5 hover:bg-white/5 text-muted-foreground hover:text-white cursor-pointer"
+          disabled={isLoggingOut}
+          className="p-1 rounded-md border border-white/5 hover:bg-white/5 text-muted-foreground hover:text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {sidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -56,7 +72,8 @@ export function Sidebar() {
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group relative cursor-pointer",
                 isActive
                   ? "gradient-primary text-white shadow-lg shadow-primary/10"
-                  : "text-muted-foreground hover:text-white hover:bg-white/5"
+                  : "text-muted-foreground hover:text-white hover:bg-white/5",
+                isLoggingOut && "pointer-events-none opacity-50"
               )}
             >
               <item.icon className="h-5 w-5 shrink-0" />
@@ -69,13 +86,23 @@ export function Sidebar() {
       {/* Sign Out Footer */}
       <div className="p-3 border-t border-white/5">
         <button
-          onClick={() => window.location.href = '/'}
+          onClick={handleSignOut}
+          disabled={isLoggingOut}
+          aria-label="Sign out"
           className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 w-full transition-all cursor-pointer"
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 w-full transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           )}
         >
-          <LogOut className="h-5 w-5 shrink-0" />
-          {sidebarOpen && <span className="whitespace-nowrap">Sign Out</span>}
+          {isLoggingOut ? (
+            <Loader2 className="h-5 w-5 shrink-0 animate-spin" />
+          ) : (
+            <LogOut className="h-5 w-5 shrink-0" />
+          )}
+          {sidebarOpen && (
+            <span className="whitespace-nowrap">
+              {isLoggingOut ? 'Signing out...' : 'Sign Out'}
+            </span>
+          )}
         </button>
       </div>
     </motion.aside>
