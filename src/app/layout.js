@@ -1,32 +1,46 @@
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
-// Configure premium UI font
+// Primary UI sans-serif
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
 });
 
-// Configure technical data/script font
+// Monospace for technical data/labels
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
   display: "swap",
 });
 
+const playfairDisplay = Playfair_Display({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  display: "swap",
+  style: ["normal", "italic"],
+});
+
 export const metadata = {
-  title: "ReelGenius — AI-Powered Content Strategy Platform",
+  title: "NIVO — Creator Intelligence Platform",
   description:
-    "Analyze Instagram profiles, generate personalized content strategies, scripts, and cover concepts with AI-powered intelligence.",
-  keywords: ["instagram", "content strategy", "ai", "reels", "scripts", "social media", "creator tools"],
+    "NIVO reads your content, understands your audience, and turns hidden signals into clear creative direction.",
+  keywords: [
+    "instagram",
+    "content strategy",
+    "ai",
+    "creator intelligence",
+    "audience signals",
+    "content direction",
+  ],
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="dark">
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} font-sans antialiased`}
       >
         {children}
       </body>
