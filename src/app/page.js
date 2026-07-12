@@ -2,16 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Menu } from 'lucide-react';
+import EnterNivoCTA from '@/components/landing/EnterNivoCTA';
 
 /**
- * NIVO Landing — UI-1a Hero Foundation
+ * NIVO Landing — UI-1b Product Entry & Capability Language
  *
  * Composition:
  *   Layer 0: Solid dark background (#06060e via body)
  *   Layer 1: Full-viewport video (decorative, muted, looping)
  *   Layer 2: Dark gradient overlays (left fade, bottom vignette, radial center-right glow)
  *   Layer 3: Noise grain texture (inherited from noise-bg)
- *   Layer 4: Left glass panel + typography (z-10)
+ *   Layer 4: Left glass panel + typography + CTA + pills (z-10)
+ *   Layer 5: Observation cue near liquid form (z-10)
  */
 export default function LandingPage() {
   const videoRef = useRef(null);
@@ -172,10 +174,55 @@ export default function LandingPage() {
               </h1>
 
               {/* Supporting copy */}
-              <p className="max-w-md text-[15px] leading-relaxed text-white/45 md:text-base">
+              <p className="max-w-md text-[15px] leading-relaxed text-white/45 md:text-base mb-8 md:mb-10">
                 NIVO reads your content, understands your audience,
                 and turns hidden signals into clear creative direction.
               </p>
+
+              {/* ---- PRIMARY CTA ---- */}
+              <div className="mb-8 md:mb-10">
+                <EnterNivoCTA />
+              </div>
+
+              {/* ---- CAPABILITY PILLS ---- */}
+              <div className="flex flex-wrap gap-2.5" role="list" aria-label="NIVO capabilities">
+                <span
+                  role="listitem"
+                  className="
+                    nivo-glass-light
+                    rounded-full
+                    px-4 py-1.5
+                    text-[10px] font-medium tracking-[0.18em] text-white/60 uppercase
+                    select-none
+                  "
+                >
+                  Audience Signals
+                </span>
+                <span
+                  role="listitem"
+                  className="
+                    nivo-glass-light
+                    rounded-full
+                    px-4 py-1.5
+                    text-[10px] font-medium tracking-[0.18em] text-white/60 uppercase
+                    select-none
+                  "
+                >
+                  Content Patterns
+                </span>
+                <span
+                  role="listitem"
+                  className="
+                    nivo-glass-light
+                    rounded-full
+                    px-4 py-1.5
+                    text-[10px] font-medium tracking-[0.18em] text-white/60 uppercase
+                    select-none
+                  "
+                >
+                  Creative Direction
+                </span>
+              </div>
             </div>
 
             {/* Spacer at bottom to prevent content from sitting at the absolute bottom */}
@@ -183,9 +230,39 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* ---------- RIGHT SIDE: Negative space (video shows through) ---------- */}
-        {/* Intentionally empty for UI-1a — the video form occupies this space.
-            Later UI tasks will place floating cards here. */}
+        {/* ---------- RIGHT SIDE: Negative space + Observation Cue ---------- */}
+        <div className="hidden md:flex flex-1 relative">
+          {/* NIVO Observation Cue — positioned near the liquid form */}
+          <div
+            className="
+              absolute
+              bottom-[18%] right-[12%]
+              lg:bottom-[20%] lg:right-[14%]
+              flex flex-col items-end gap-1.5
+              select-none pointer-events-none
+            "
+            aria-hidden="true"
+          >
+            {/* Tiny indicator + label */}
+            <div className="flex items-center gap-2">
+              <span className="h-1 w-1 rounded-full bg-violet-400/50" />
+              <span className="text-[9px] font-medium tracking-[0.25em] text-white/40 uppercase">
+                NIVO Observation 01
+              </span>
+            </div>
+            {/* Subtle rule */}
+            <div
+              className="w-16 h-px mr-3"
+              style={{
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)',
+              }}
+            />
+            {/* Status text */}
+            <span className="text-[8px] font-medium tracking-[0.2em] text-white/30 uppercase mr-1">
+              Pattern Recognition Active
+            </span>
+          </div>
+        </div>
       </div>
     </main>
   );
