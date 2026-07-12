@@ -230,9 +230,53 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* ---------- RIGHT SIDE: Negative space + Observation Cue ---------- */}
+        {/* ---------- RIGHT SIDE: Negative space + Intelligence Surface + Observation Cue ---------- */}
         <div className="hidden md:flex flex-1 relative">
-          {/* NIVO Observation Cue — positioned near the liquid form */}
+
+          {/* ---- Intelligence Interpretation Surface ---- */}
+          {/* Outer: positioning only. Inner: glass styling.
+              Separated because .nivo-glass-strong sets position:relative,
+              which would override the absolute positioning. */}
+          <div
+            className="
+              absolute
+              bottom-[32%] right-[8%]
+              lg:bottom-[34%] lg:right-[10%]
+              w-[280px] lg:w-[300px]
+              pointer-events-none
+            "
+          >
+            <div
+              className="
+                nivo-glass-light
+                rounded-2xl
+                px-5 py-4
+              "
+            >
+              {/* Top label */}
+              <span
+                className="text-[9px] font-medium tracking-[0.22em] text-white/35 uppercase block mb-4"
+                aria-hidden="true"
+              >
+                Reading Your Content
+              </span>
+
+              {/* Interpretation copy */}
+              <p className="text-[14px] leading-relaxed text-white/85 mb-5">
+                Visual rhythm is strongest when motion enters before the subject is revealed.
+              </p>
+
+              {/* Signal label */}
+              <div className="flex items-center gap-2">
+                <span className="h-px w-4 bg-white/15" aria-hidden="true" />
+                <span className="text-[8px] font-medium tracking-[0.2em] text-white/30 uppercase">
+                  Signal / Visual Rhythm
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ---- NIVO Observation Cue — positioned near the liquid form ---- */}
           <div
             className="
               absolute
