@@ -16,7 +16,7 @@ export function Header() {
     if (segment === 'scripts') return 'Script Studio';
     if (segment === 'covers') return 'Cover Designer';
     if (segment === 'tracker') return 'Content Pipeline';
-    return 'ReelGenius';
+    return 'NIVO';
   };
 
   return (

@@ -1,5 +1,5 @@
 {
-  "name": "reelgenius",
+  "name": "nivo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@google/genai": "^2.11.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.2",
@@ -19,6 +22,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tailwind-merge": "^3.6.0",
+    "three": "^0.185.1",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },

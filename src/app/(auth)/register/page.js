@@ -1,8 +1,8 @@
 import { RegisterForm } from '@/components/auth/RegisterForm';
 
 export const metadata = {
-  title: 'Register — ReelGenius',
-  description: 'Create your ReelGenius account to supercharge your content strategy.',
+  title: 'Register — NIVO',
+  description: 'Create your NIVO account to read your audience signals.',
 };
 
 export default function RegisterPage() {

@@ -99,7 +99,7 @@ export function LoginForm() {
       <div className="flex flex-col gap-2 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-white">Welcome back</h1>
         <p className="text-sm text-muted-foreground">
-          Sign in to your ReelGenius creator account
+          Sign in to your NIVO creator account
         </p>
       </div>
 

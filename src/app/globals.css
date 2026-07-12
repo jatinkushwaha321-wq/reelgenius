@@ -4,33 +4,40 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   
-  /* Primary electric purple-to-cyan gradient bounds */
-  --color-primary: #7c3aed;
-  --color-primary-foreground: #ffffff;
+  /* Monochromatic NIVO Design Tokens (M5.1 Monochrome Foundation) */
+  --color-nivo-black: #050508;
+  --color-nivo-charcoal: #121214;
+  --color-nivo-grey: #1f1f23;
+  --color-nivo-light-grey: #a1a1aa;
+  --color-nivo-white: #fafafa;
+  
+  /* Primary & secondary style overrides to monochrome */
+  --color-primary: #fafafa;
+  --color-primary-foreground: #050508;
   
   /* UI Slate boundaries */
-  --color-secondary: #1e293b;
-  --color-secondary-foreground: #f8fafc;
+  --color-secondary: #121214;
+  --color-secondary-foreground: #fafafa;
   
-  /* Cyan accent glow */
-  --color-accent: #06b6d4;
-  --color-accent-foreground: #ffffff;
+  /* Cyan accent glow (Legacy compatibility override) */
+  --color-accent: #a1a1aa;
+  --color-accent-foreground: #050508;
   
   /* Highlight / Streaks amber */
-  --color-amber: #f59e0b;
-  --color-muted: #1e293b;
-  --color-muted-foreground: #94a3b8;
+  --color-amber: #e4e4e7;
+  --color-muted: #121214;
+  --color-muted-foreground: #a1a1aa;
   
   /* Glassmorphism specs from PRD */
-  --color-card: rgba(255, 255, 255, 0.03);
-  --color-card-foreground: #f8fafc;
-  --color-border: rgba(255, 255, 255, 0.1); /* border-white/10 */
+  --color-card: rgba(255, 255, 255, 0.02);
+  --color-card-foreground: #fafafa;
+  --color-border: rgba(255, 255, 255, 0.05); /* border-white/5 */
   
-  --color-ring: #7c3aed;
+  --color-ring: #fafafa;
   
   /* Semantic tokens */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
+  --color-success: #fafafa;
+  --color-warning: #e4e4e7;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
   
@@ -40,12 +47,16 @@
   --radius-xl: 1rem;
   
   --font-sans: var(--font-inter);
-  --font-mono: var(--font-jetbrains-mono);
+  --font-display: var(--font-oswald);
+  --font-mono: var(--font-space-mono);
+  
+  /* Legacy compatibility maps to prevent compile errors in unmigrated layouts */
+  --font-jetbrains-mono: var(--font-space-mono);
 }
 
 :root {
-  --background: #0a0a1a;
-  --foreground: #f8fafc;
+  --background: #050508;
+  --foreground: #fafafa;
 }
 
 * {
@@ -53,8 +64,8 @@
 }
 
 body {
-  /* Deep navy gradient configuration from PRD */
-  background: radial-gradient(ellipse at top, #0f172a 0%, #0a0a1a 80%);
+  /* Monochromatic near-black top radial spotlight (M5.1) */
+  background: radial-gradient(ellipse at top, #121214 0%, #050508 80%);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
   min-height: 100vh;

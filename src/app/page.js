@@ -1,8 +1,11 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { Sparkles, TrendingUp, Film, Palette, LayoutGrid, Brain } from 'lucide-react';
 import Link from 'next/link';
+
+const NivoSceneHost = dynamic(() => import('@/components/experience/scene/NivoSceneHost'), { ssr: false });
 
 const features = [
   {
@@ -39,7 +42,7 @@ const features = [
     icon: Brain,
     title: 'AI Memory',
     description:
-      'ReelGenius learns your style, remembers past content, and ensures every new idea is fresh and on-brand.',
+      'NIVO reads your content patterns, remembers past outputs, and ensures your creative direction is fresh and aligned.',
   },
 ];
 
@@ -65,7 +68,10 @@ const itemVariants = {
 
 export default function LandingPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden noise-bg">
+    <main className="relative min-h-screen overflow-hidden noise-bg nivo-experience-scope">
+      {/* Persistent WebGL/R3F Scene Background */}
+      <NivoSceneHost />
+
       {/* Animated background gradient glow orbs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -left-40 -top-40 h-80 w-80 rounded-full bg-purple-600/20 blur-[120px] animate-pulse-glow" />
@@ -81,7 +87,7 @@ export default function LandingPage() {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
               <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">ReelGenius</span>
+            <span className="text-xl font-bold text-white tracking-tight">NIVO /</span>
           </div>
           <Link
             href="/login"
@@ -109,9 +115,8 @@ export default function LandingPage() {
           </h1>
 
           <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-            ReelGenius analyzes your Instagram presence, generates personalized content
-            strategies, writes production-ready scripts, and tracks your entire creative
-            pipeline — all powered by AI that learns your unique style.
+            NIVO reads your Instagram presence, extracts audience signals, and generates
+            clear creative direction — all powered by intelligence that learns your unique style.
           </p>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">

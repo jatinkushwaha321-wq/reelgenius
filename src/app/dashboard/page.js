@@ -40,7 +40,7 @@ export default function DashboardHome() {
           <h3 className="text-lg font-semibold text-white">Get Started</h3>
         </div>
         <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-          Before you can generate content strategies or write scripts, you need to analyze your Instagram profile to help ReelGenius understand your niche, style, and target audience.
+          Before you can generate content strategies or write scripts, you need to analyze your Instagram profile to help NIVO understand your niche, style, and target audience.
         </p>
         <Link href="/dashboard/analyzer">
           <Button className="gradient-primary text-white">

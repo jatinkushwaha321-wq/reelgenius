@@ -1,6 +1,6 @@
-# 🎬 ReelGenius
+# 🎬 NIVO /
 
-ReelGenius is a production-grade AI-powered SaaS platform designed to assist Instagram creators in analyzing profiles, planning weekly/monthly content strategies, generating scripts, designing visual cover blueprints, and tracking content items through a 7-stage Kanban pipeline.
+NIVO is a production-grade Creator Intelligence System designed to assist Instagram creators in reading audience signals, extracting patterns, and turning content feedback into clear creative direction.
 
 ---
 
