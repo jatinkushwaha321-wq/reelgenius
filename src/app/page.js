@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Menu } from 'lucide-react';
 import EnterNivoCTA from '@/components/landing/EnterNivoCTA';
+import CreatorIntelligenceSection from '@/components/landing/CreatorIntelligenceSection';
+import IntelligenceFieldsSection from '@/components/landing/IntelligenceFieldsSection';
+import EnterNivoSection from '@/components/landing/EnterNivoSection';
 
 /**
  * NIVO Landing — UI-1b Product Entry & Capability Language
@@ -18,8 +21,16 @@ import EnterNivoCTA from '@/components/landing/EnterNivoCTA';
 export default function LandingPage() {
   const videoRef = useRef(null);
   const [videoReady, setVideoReady] = useState(false);
+  const mainRef = useRef(null);
+  const videoContainerRef = useRef(null);
+  const glowRef = useRef(null);
+  const obsSurfaceRef = useRef(null);
+  const cardRef = useRef(null);
+  const [cardHovered, setCardHovered] = useState(false);
+  const [eyebrowDotHovered, setEyebrowDotHovered] = useState(false);
+  const [obsDotHovered, setObsDotHovered] = useState(false);
+  const [hoveredCapsule, setHoveredCapsule] = useState(null);
 
-  // Respect prefers-reduced-motion: pause the video if motion is reduced
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handleChange = () => {
@@ -35,14 +46,105 @@ export default function LandingPage() {
     return () => mq.removeEventListener('change', handleChange);
   }, [videoReady]);
 
+  // A — Hero Depth Parallax (Fine pointer & reduced motion gated)
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main) return;
+
+    let rafId;
+
+    const handlePointerMove = (e) => {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!window.matchMedia('(pointer: fine)').matches) return;
+
+      const { clientX, clientY } = e;
+      const { innerWidth, innerHeight } = window;
+
+      const nx = (clientX / innerWidth) - 0.5;
+      const ny = (clientY / innerHeight) - 0.5;
+
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (videoContainerRef.current) {
+          // Translate video (orb) max 6px
+          videoContainerRef.current.style.transform = `translate(${nx * 12}px, ${ny * 12}px)`;
+        }
+        if (glowRef.current) {
+          // Translate separately controllable highlight max 3px
+          glowRef.current.style.transform = `translate(${nx * 6}px, ${ny * 6}px)`;
+        }
+        if (obsSurfaceRef.current) {
+          // Translate surface opposite direction max 2px
+          obsSurfaceRef.current.style.transform = `translate(${-nx * 4}px, ${-ny * 4}px)`;
+        }
+      });
+    };
+
+    const handlePointerLeave = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (videoContainerRef.current) videoContainerRef.current.style.transform = '';
+        if (glowRef.current) glowRef.current.style.transform = '';
+        if (obsSurfaceRef.current) obsSurfaceRef.current.style.transform = '';
+      });
+    };
+
+    main.addEventListener('pointermove', handlePointerMove);
+    main.addEventListener('pointerleave', handlePointerLeave);
+    return () => {
+      main.removeEventListener('pointermove', handlePointerMove);
+      main.removeEventListener('pointerleave', handlePointerLeave);
+      cancelAnimationFrame(rafId);
+    };
+  }, []);
+
+  // C — Cursor-following surface light (Fine pointer gated)
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    let rafId;
+
+    const handleCardPointerMove = (e) => {
+      if (!window.matchMedia('(pointer: fine)').matches) return;
+
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        card.style.setProperty('--surface-x', `${x}px`);
+        card.style.setProperty('--surface-y', `${y}px`);
+        card.style.setProperty('--surface-presence', '1');
+      });
+    };
+
+    const handleCardPointerLeave = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        card.style.setProperty('--surface-presence', '0');
+      });
+    };
+
+    card.addEventListener('pointermove', handleCardPointerMove);
+    card.addEventListener('pointerleave', handleCardPointerLeave);
+    return () => {
+      card.removeEventListener('pointermove', handleCardPointerMove);
+      card.removeEventListener('pointerleave', handleCardPointerLeave);
+      cancelAnimationFrame(rafId);
+    };
+  }, []);
+
   return (
-    <main className="relative min-h-screen overflow-hidden noise-bg">
+    <>
+    <main ref={mainRef} className="relative min-h-screen overflow-hidden noise-bg">
       {/* ============================================================
           LAYER 1 — Background Video
           Decorative, muted, looping. Covers the hero viewport.
           object-position biases the organic form toward center-right.
           ============================================================ */}
-      <div className="absolute inset-0 z-0" aria-hidden="true">
+      <div ref={videoContainerRef} className="absolute inset-0 z-0 transition-transform duration-300 ease-out" aria-hidden="true">
         <video
           ref={videoRef}
           className="h-full w-full object-cover transition-opacity duration-1000"
@@ -89,7 +191,8 @@ export default function LandingPage() {
         />
         {/* Restrained radial glow in center-right to accent the video form */}
         <div
-          className="absolute inset-0"
+          ref={glowRef}
+          className="absolute inset-0 transition-transform duration-300 ease-out"
           style={{
             background: 'radial-gradient(ellipse 50% 60% at 65% 45%, rgba(124,58,237,0.06) 0%, transparent 100%)',
           }}
@@ -154,8 +257,29 @@ export default function LandingPage() {
             <div className="flex flex-col justify-center flex-1 py-12 md:py-16">
               {/* Eyebrow */}
               <div className="flex items-center gap-2 mb-6 md:mb-8">
-                <span className="h-1.5 w-1.5 rounded-full bg-violet-400/80" aria-hidden="true" />
-                <span className="text-[11px] font-medium tracking-[0.2em] text-white/50 uppercase">
+                <div
+                  onMouseEnter={() => setEyebrowDotHovered(true)}
+                  onMouseLeave={() => setEyebrowDotHovered(false)}
+                  className="inline-flex items-center justify-center cursor-default relative z-10 select-none"
+                  style={{ width: '28px', height: '28px', marginLeft: '-11px', marginRight: '-11px' }}
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-violet-400/80 transition-all duration-200 ease-out"
+                    style={{
+                      transform: eyebrowDotHovered ? 'scale(1.4)' : 'scale(1)',
+                      boxShadow: eyebrowDotHovered
+                        ? '0 0 8px rgba(167, 139, 250, 0.65), 0 0 16px rgba(139, 92, 246, 0.18)'
+                        : 'none',
+                      backgroundColor: eyebrowDotHovered ? 'rgba(167, 139, 250, 1)' : undefined,
+                    }}
+                    aria-hidden="true"
+                  />
+                </div>
+                <span
+                  className={`text-[11px] font-medium tracking-[0.2em] uppercase transition-colors duration-200 ${
+                    eyebrowDotHovered ? 'text-white/65' : 'text-white/50'
+                  }`}
+                >
                   Creator Intelligence
                 </span>
               </div>
@@ -186,42 +310,38 @@ export default function LandingPage() {
 
               {/* ---- CAPABILITY PILLS ---- */}
               <div className="flex flex-wrap gap-2.5" role="list" aria-label="NIVO capabilities">
-                <span
-                  role="listitem"
-                  className="
-                    nivo-glass-light
-                    rounded-full
-                    px-4 py-1.5
-                    text-[10px] font-medium tracking-[0.18em] text-white/60 uppercase
-                    select-none
-                  "
-                >
-                  Audience Signals
-                </span>
-                <span
-                  role="listitem"
-                  className="
-                    nivo-glass-light
-                    rounded-full
-                    px-4 py-1.5
-                    text-[10px] font-medium tracking-[0.18em] text-white/60 uppercase
-                    select-none
-                  "
-                >
-                  Content Patterns
-                </span>
-                <span
-                  role="listitem"
-                  className="
-                    nivo-glass-light
-                    rounded-full
-                    px-4 py-1.5
-                    text-[10px] font-medium tracking-[0.18em] text-white/60 uppercase
-                    select-none
-                  "
-                >
-                  Creative Direction
-                </span>
+                {[
+                  { id: 'audience', label: 'Audience Signals' },
+                  { id: 'content', label: 'Content Patterns' },
+                  { id: 'direction', label: 'Creative Direction' },
+                ].map((capsule) => {
+                  const isHovered = hoveredCapsule === capsule.id;
+                  return (
+                    <span
+                      key={capsule.id}
+                      role="listitem"
+                      onMouseEnter={() => setHoveredCapsule(capsule.id)}
+                      onMouseLeave={() => setHoveredCapsule(null)}
+                      className="
+                        nivo-glass-light
+                        rounded-full
+                        px-4 py-1.5
+                        text-[10px] font-medium tracking-[0.18em] uppercase
+                        select-none cursor-default
+                        transition-all duration-300 ease-out
+                      "
+                      style={{
+                        transform: isHovered ? 'scale(1.03)' : 'scale(1)',
+                        borderColor: isHovered ? 'rgba(255, 255, 255, 0.15)' : undefined,
+                        backgroundColor: isHovered ? 'rgba(139, 92, 246, 0.035)' : undefined,
+                        color: isHovered ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.60)',
+                        boxShadow: isHovered ? '0 0 18px rgba(139, 92, 246, 0.06)' : undefined,
+                      }}
+                    >
+                      {capsule.label}
+                    </span>
+                  );
+                })}
               </div>
             </div>
 
@@ -238,36 +358,73 @@ export default function LandingPage() {
               Separated because .nivo-glass-strong sets position:relative,
               which would override the absolute positioning. */}
           <div
+            ref={obsSurfaceRef}
             className="
               absolute
               bottom-[32%] right-[8%]
               lg:bottom-[34%] lg:right-[10%]
               w-[280px] lg:w-[300px]
               pointer-events-none
+              transition-transform duration-300 ease-out
             "
           >
             <div
+              ref={cardRef}
+              onMouseEnter={() => setCardHovered(true)}
+              onMouseLeave={() => setCardHovered(false)}
               className="
                 nivo-glass-light
                 rounded-2xl
                 px-5 py-4
+                pointer-events-auto
+                relative overflow-hidden
+                transition-colors duration-300
               "
+              style={{
+                '--surface-x': '0px',
+                '--surface-y': '0px',
+                '--surface-presence': '0',
+                borderColor: cardHovered ? 'rgba(255,255,255,0.12)' : undefined,
+              }}
             >
+              {/* Radial pointer highlight */}
+              <div
+                className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-[var(--surface-presence)]"
+                style={{
+                  background: 'radial-gradient(260px circle at var(--surface-x) var(--surface-y), rgba(139, 92, 246, 0.06), transparent 65%)',
+                }}
+                aria-hidden="true"
+              />
+              {/* Border response overlay */}
+              <div
+                className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-[var(--surface-presence)] rounded-2xl"
+                style={{
+                  padding: '1px',
+                  background: 'radial-gradient(180px circle at var(--surface-x) var(--surface-y), rgba(139, 92, 246, 0.25), transparent 70%)',
+                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                }}
+                aria-hidden="true"
+              />
+
               {/* Top label */}
               <span
-                className="text-[9px] font-medium tracking-[0.22em] text-white/35 uppercase block mb-4"
+                className={`text-[9px] font-medium tracking-[0.22em] uppercase block mb-4 transition-colors duration-300 ${
+                  cardHovered ? 'text-white/55' : 'text-white/35'
+                }`}
                 aria-hidden="true"
               >
                 Reading Your Content
               </span>
 
               {/* Interpretation copy */}
-              <p className="text-[14px] leading-relaxed text-white/85 mb-5">
+              <p className="text-[14px] leading-relaxed text-white/85 mb-5 relative z-10">
                 Visual rhythm is strongest when motion enters before the subject is revealed.
               </p>
 
               {/* Signal label */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 relative z-10">
                 <span className="h-px w-4 bg-white/15" aria-hidden="true" />
                 <span className="text-[8px] font-medium tracking-[0.2em] text-white/30 uppercase">
                   Signal / Visual Rhythm
@@ -289,25 +446,77 @@ export default function LandingPage() {
           >
             {/* Tiny indicator + label */}
             <div className="flex items-center gap-2">
-              <span className="h-1 w-1 rounded-full bg-violet-400/50" />
-              <span className="text-[9px] font-medium tracking-[0.25em] text-white/40 uppercase">
+              <div
+                onMouseEnter={() => setObsDotHovered(true)}
+                onMouseLeave={() => setObsDotHovered(false)}
+                className="inline-flex items-center justify-center cursor-default relative z-10 pointer-events-auto select-none"
+                style={{ width: '24px', height: '24px', marginLeft: '-10px', marginRight: '-10px' }}
+              >
+                <span
+                  className="h-1 w-1 rounded-full bg-violet-400/50 transition-all duration-200 ease-out"
+                  style={{
+                    transform: obsDotHovered
+                      ? 'scale(1.45)'
+                      : cardHovered
+                        ? 'scale(1.2)'
+                        : 'scale(1)',
+                    boxShadow: obsDotHovered
+                      ? '0 0 8px rgba(167, 139, 250, 0.65), 0 0 16px rgba(139, 92, 246, 0.18)'
+                      : cardHovered
+                        ? '0 0 6px rgba(167, 139, 250, 0.8)'
+                        : 'none',
+                    backgroundColor: obsDotHovered ? 'rgba(167, 139, 250, 1)' : undefined,
+                  }}
+                />
+              </div>
+              <span
+                className={`text-[9px] font-medium tracking-[0.25em] uppercase transition-colors duration-300 ${
+                  obsDotHovered
+                    ? 'text-white/60'
+                    : cardHovered
+                      ? 'text-white/55'
+                      : 'text-white/40'
+                }`}
+              >
                 NIVO Observation 01
               </span>
             </div>
             {/* Subtle rule */}
             <div
-              className="w-16 h-px mr-3"
+              className="w-16 h-px mr-3 transition-colors duration-300"
               style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)',
+                background: cardHovered
+                  ? 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)'
+                  : 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)',
               }}
             />
             {/* Status text */}
-            <span className="text-[8px] font-medium tracking-[0.2em] text-white/30 uppercase mr-1">
+            <span
+              className={`text-[8px] font-medium tracking-[0.2em] uppercase mr-1 transition-colors duration-300 ${
+                cardHovered ? 'text-white/45' : 'text-white/30'
+              }`}
+            >
               Pattern Recognition Active
             </span>
           </div>
         </div>
       </div>
     </main>
+
+      {/* ============================================================
+          SECTION 02 — Creator Intelligence Narrative
+          ============================================================ */}
+      <CreatorIntelligenceSection />
+
+      {/* ============================================================
+          SECTION 03 — Intelligence Fields
+          ============================================================ */}
+      <IntelligenceFieldsSection />
+
+      {/* ============================================================
+          SECTION 04 — Enter NIVO (Final Landing Closure)
+          ============================================================ */}
+      <EnterNivoSection />
+    </>
   );
 }
