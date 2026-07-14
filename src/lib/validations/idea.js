@@ -12,6 +12,19 @@ const coverConceptSchema = z.object({
   aiImagePrompt: z.string().max(1000).trim().optional(),
 });
 
+const datePreprocess = z.preprocess((arg) => {
+  if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
+}, z.date()).nullable().optional();
+
+const sourceSignalSnapshotSchema = z.object({
+  key: z.string().trim(),
+  displayName: z.string().trim(),
+  strength: z.number().min(0).max(100),
+  confidence: z.number().min(0).max(100),
+  trend: z.enum(['unknown', 'rising', 'stable', 'falling']),
+  directionImplication: z.string().trim(),
+});
+
 export const ideaSchema = z.object({
   userId: z.string().regex(objectIdRegex, 'Invalid User ID format'),
   profileId: z.string().regex(objectIdRegex, 'Invalid Profile ID format'),
@@ -20,6 +33,7 @@ export const ideaSchema = z.object({
     .min(1, 'Title is required')
     .max(200, 'Title cannot exceed 200 characters')
     .trim(),
+  topic: z.string().max(100, 'Topic cannot exceed 100 characters').trim().optional().default(''),
   description: z.string().trim().optional(),
   format: z
     .enum([
@@ -41,6 +55,7 @@ export const ideaSchema = z.object({
   estimatedDuration: z.string().max(50).trim().optional(),
   status: z
     .enum([
+      'candidate',
       'idea',
       'scripted',
       'shooting',
@@ -50,14 +65,19 @@ export const ideaSchema = z.object({
       'performance',
     ])
     .default('idea'),
-  scheduledFor: z.preprocess((arg) => {
-    if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
-  }, z.date()).nullable().optional(),
-  publishedAt: z.preprocess((arg) => {
-    if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
-  }, z.date()).nullable().optional(),
+  scheduledFor: datePreprocess,
+  publishedAt: datePreprocess,
   tags: z.array(z.string().max(50).trim()).optional(),
   isFavorited: z.boolean().optional(),
   notes: z.string().trim().optional(),
   coverConcepts: z.array(coverConceptSchema).optional(),
+  generationRunId: z.string().trim().nullable().optional(),
+  sourceSignalKeys: z.array(z.string().trim()).optional().default([]),
+  sourceSignalSnapshots: z.array(sourceSignalSnapshotSchema).optional().default([]),
+  directionSnapshot: z.string().max(500).trim().optional().default(''),
+  whyNow: z.string().max(300).trim().optional().default(''),
+  noveltyReason: z.string().max(300).trim().optional().default(''),
+  intelligenceAnalyzedAt: datePreprocess,
+  generatedAt: datePreprocess,
+  generationModel: z.string().trim().optional().default(''),
 });

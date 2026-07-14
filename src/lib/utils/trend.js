@@ -14,7 +14,7 @@ export const SLOPE_THRESHOLD = 1.0; // Strength points change per observation in
  */
 export function calculateTrend(observations) {
   if (!observations || observations.length < 2) {
-    return 'stable';
+    return 'unknown';
   }
 
   // Copy and sort array chronologically by observedAt (avoids input mutation)
@@ -27,7 +27,7 @@ export function calculateTrend(observations) {
   const n = recent.length;
 
   if (n < 2) {
-    return 'stable';
+    return 'unknown';
   }
 
   // Map to x (1, 2, ..., n) and y (strength) values

@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, User } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useUIStore } from '@/lib/store';
 
@@ -10,32 +10,25 @@ export function Header() {
   
   const getTitle = () => {
     const segment = pathname.split('/').pop();
-    if (segment === 'dashboard') return 'Dashboard';
-    if (segment === 'analyzer') return 'Profile Analyzer';
-    if (segment === 'strategy') return 'Strategy Planner';
-    if (segment === 'scripts') return 'Script Studio';
-    if (segment === 'covers') return 'Cover Designer';
-    if (segment === 'tracker') return 'Content Pipeline';
-    return 'ReelGenius';
+    if (segment === 'dashboard') return 'Overview';
+    if (segment === 'ideas') return 'Ideas';
+    if (segment === 'profile') return 'Profile';
+    return 'NIVO';
   };
 
   return (
-    <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 sticky top-0 bg-[#0a0a1a]/85 backdrop-blur-md z-20">
+    <header className="h-14 border-b border-white/[0.04] flex items-center px-5 sticky top-0 bg-[#070712]/90 backdrop-blur-md z-20">
       <div className="flex items-center gap-3">
         <button 
           onClick={toggleSidebar}
           aria-label="Open sidebar menu"
-          className="md:hidden p-1.5 rounded-md border border-white/5 text-muted-foreground hover:text-white cursor-pointer"
+          className="md:hidden p-1.5 rounded-md text-white/30 hover:text-white/60 cursor-pointer transition-colors duration-200"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4.5 w-4.5" strokeWidth={1.5} />
         </button>
-        <h2 className="text-lg font-semibold text-white tracking-tight">{getTitle()}</h2>
-      </div>
-      
-      <div className="flex items-center gap-3">
-        <div className="h-8 w-8 rounded-full bg-secondary border border-white/5 flex items-center justify-center text-muted-foreground hover:text-white cursor-pointer">
-          <User className="h-4 w-4" />
-        </div>
+        <span className="text-[13px] font-medium tracking-wide text-white/50 uppercase">
+          {getTitle()}
+        </span>
       </div>
     </header>
   );

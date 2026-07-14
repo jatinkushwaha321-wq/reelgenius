@@ -87,10 +87,9 @@ const creatorProfileSchema = new mongoose.Schema(
     ],
     contentPillars: [contentPillarSchema],
     audiencePersona: {
-      ageRange: { type: String, default: '', trim: true },
+      behaviorProfile: { type: String, default: '', trim: true },
       interests: [{ type: String, trim: true }],
       painPoints: [{ type: String, trim: true }],
-      platforms: [{ type: String, trim: true }],
     },
     brandIdentity: {
       tone: [{ type: String, trim: true }],
@@ -110,7 +109,7 @@ const creatorProfileSchema = new mongoose.Schema(
     },
     analyzedAt: {
       type: Date,
-      default: Date.now,
+      default: null,
     },
   },
   {

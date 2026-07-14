@@ -26,13 +26,9 @@ const evidenceSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['metric', 'retention', 'attribute', 'comment', 'fact', 'comparative'],
+    enum: ['metric', 'attribute', 'comment', 'fact', 'comparative'],
   },
   sourceId: {
-    type: String,
-    default: null,
-  },
-  sourceUrl: {
     type: String,
     default: null,
   },
@@ -105,7 +101,7 @@ const signalSchema = new mongoose.Schema({
   trend: {
     type: String,
     required: true,
-    enum: ['rising', 'stable', 'falling'],
+    enum: ['unknown', 'rising', 'stable', 'falling'],
   },
   creatorTrait: {
     type: String,

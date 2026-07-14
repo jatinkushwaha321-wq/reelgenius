@@ -42,6 +42,44 @@ const coverConceptSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const sourceSignalSnapshotSchema = new mongoose.Schema(
+  {
+    key: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    displayName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    strength: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 100,
+    },
+    confidence: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 100,
+    },
+    trend: {
+      type: String,
+      required: true,
+      enum: ['unknown', 'rising', 'stable', 'falling'],
+    },
+    directionImplication: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+  },
+  { _id: false }
+);
+
 const ideaSchema = new mongoose.Schema(
   {
     userId: {
@@ -59,6 +97,12 @@ const ideaSchema = new mongoose.Schema(
       required: true,
       trim: true,
       maxlength: 200,
+    },
+    topic: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 100,
     },
     description: {
       type: String,
@@ -108,6 +152,7 @@ const ideaSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
+        'candidate',
         'idea',
         'scripted',
         'shooting',
@@ -142,6 +187,53 @@ const ideaSchema = new mongoose.Schema(
       trim: true,
     },
     coverConcepts: [coverConceptSchema],
+    generationRunId: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    sourceSignalKeys: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    sourceSignalSnapshots: [sourceSignalSnapshotSchema],
+    directionSnapshot: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 500,
+    },
+    whyNow: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 300,
+    },
+    noveltyReason: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 300,
+    },
+    intelligenceAnalyzedAt: {
+      type: Date,
+      default: null,
+    },
+    generatedAt: {
+      type: Date,
+      default: null,
+    },
+    generationModel: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    rankKey: {
+      type: Number,
+      default: null,
+    },
   },
   {
     timestamps: true,

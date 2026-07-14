@@ -20,9 +20,8 @@ const metricsSchema = z.record(
 
 // Evidence subdocument validation rules (Correction 3)
 const evidenceSchema = z.object({
-  type: z.enum(['metric', 'retention', 'attribute', 'comment', 'fact', 'comparative']),
+  type: z.enum(['metric', 'attribute', 'comment', 'fact', 'comparative']),
   sourceId: z.string().nullable().optional(),
-  sourceUrl: z.string().url({ message: 'Invalid URL format' }).nullable().optional().or(z.string().max(0)),
   fact: z.string().min(1, 'Fact is required').max(500, 'Fact cannot exceed 500 characters').trim(),
   metrics: metricsSchema.optional(),
 });
@@ -56,7 +55,7 @@ export const signalSchema = z.object({
   category: z.enum(['audience-engagement', 'content-format', 'creator-style']),
   strength: z.number().min(0).max(100).refine(Number.isFinite),
   confidence: z.number().min(0).max(100).refine(Number.isFinite),
-  trend: z.enum(['rising', 'stable', 'falling']),
+  trend: z.enum(['unknown', 'rising', 'stable', 'falling']),
   creatorTrait: z.string().min(1, 'Creator trait description is required').trim(),
   audienceBehavior: z.string().min(1, 'Audience behavior description is required').trim(),
   directionImplication: z.string().min(1, 'Direction implication description is required').trim(),

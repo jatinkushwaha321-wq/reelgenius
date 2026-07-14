@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, LayoutDashboard, Search, Calendar, Film, Palette, Kanban, LogOut, Loader2 } from 'lucide-react';
+import { Activity, Lightbulb, User, LogOut, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { useUIStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
-const menuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: Search, label: 'Profile Analyzer', href: '/dashboard/analyzer' },
-  { icon: Calendar, label: 'Strategy Planner', href: '/dashboard/strategy' },
-  { icon: Film, label: 'Script Studio', href: '/dashboard/scripts' },
-  { icon: Palette, label: 'Cover Designer', href: '/dashboard/covers' },
-  { icon: Kanban, label: 'Content Pipeline', href: '/dashboard/tracker' },
+const navItems = [
+  { icon: Activity, label: 'Overview', href: '/dashboard' },
+  { icon: Lightbulb, label: 'Ideas', href: '/dashboard/ideas' },
+];
+
+const systemItems = [
+  { icon: User, label: 'Profile', href: '/dashboard/profile' },
 ];
 
 export function Sidebar() {
@@ -75,6 +75,34 @@ export function Sidebar() {
     }
   };
 
+  const renderNavLink = (item) => {
+    const isActive = pathname === item.href;
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={handleLinkClick}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 relative cursor-pointer select-none",
+          isActive
+            ? "text-white/90 bg-white/[0.06]"
+            : "text-white/40 hover:text-white/65 hover:bg-white/[0.03]",
+          isLoggingOut && "pointer-events-none opacity-50"
+        )}
+      >
+        {/* Active indicator — restrained violet dot */}
+        {isActive && (
+          <span
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-violet-400/60"
+            aria-hidden="true"
+          />
+        )}
+        <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} />
+        <span className="whitespace-nowrap">{item.label}</span>
+      </Link>
+    );
+  };
+
   return (
     <>
       {/* Dark backdrop overlay for mobile screen drawer */}
@@ -96,68 +124,62 @@ export function Sidebar() {
           width: '80vw'
         } : {
           x: 0,
-          width: 280
+          width: 260
         }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         style={{
           maxWidth: isMobile ? 300 : 'none'
         }}
         className={cn(
-          "flex flex-col h-screen fixed left-0 top-0 border-r border-white/5 bg-[#0a0a1a] z-40",
+          "flex flex-col h-screen fixed left-0 top-0 z-40",
+          "bg-[#070712] border-r border-white/[0.04]",
           isMobile && "shadow-2xl shadow-black/80"
         )}
       >
-        {/* Logo / Header Segment - Simplified static layout without toggle triggers */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-white/5 shrink-0">
-          <div className="flex items-center gap-2 overflow-hidden">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg gradient-primary">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-bold text-white text-lg tracking-tight whitespace-nowrap">ReelGenius</span>
-          </div>
+        {/* ---- NIVO Wordmark ---- */}
+        <div className="flex items-center h-16 px-5 shrink-0">
+          <Link
+            href="/dashboard"
+            onClick={handleLinkClick}
+            className="flex items-center gap-0 select-none"
+          >
+            <span className="text-[15px] font-semibold tracking-tight text-white/90">
+              NIVO
+            </span>
+            <span className="text-white/20 mx-1.5">/</span>
+          </Link>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="flex-1 py-4 px-3 flex flex-col gap-1 overflow-y-auto">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={handleLinkClick}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group relative cursor-pointer",
-                  isActive
-                    ? "gradient-primary text-white shadow-lg shadow-primary/10"
-                    : "text-muted-foreground hover:text-white hover:bg-white/5",
-                  isLoggingOut && "pointer-events-none opacity-50"
-                )}
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                <span className="whitespace-nowrap">{item.label}</span>
-              </Link>
-            );
-          })}
+        {/* ---- Primary Navigation ---- */}
+        <nav className="flex-1 pt-1 px-3 flex flex-col gap-0.5 overflow-y-auto">
+          {navItems.map(renderNavLink)}
+
+          {/* Subtle rule separating workspace from system */}
+          <div className="my-3 mx-2 h-px bg-white/[0.04]" aria-hidden="true" />
+
+          {systemItems.map(renderNavLink)}
         </nav>
 
-        {/* Sign Out Footer */}
-        <div className="p-3 border-t border-white/5">
+        {/* ---- Sign Out ---- */}
+        <div className="p-3 border-t border-white/[0.04]">
           <button
             onClick={handleSignOut}
             disabled={isLoggingOut}
             aria-label="Sign out"
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 w-full transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium",
+              "text-white/30 hover:text-white/50 hover:bg-white/[0.03]",
+              "w-full transition-all duration-200 cursor-pointer",
+              "disabled:opacity-50 disabled:cursor-not-allowed"
             )}
           >
             {isLoggingOut ? (
-              <Loader2 className="h-5 w-5 shrink-0 animate-spin" />
+              <Loader2 className="h-[18px] w-[18px] shrink-0 animate-spin" />
             ) : (
-              <LogOut className="h-5 w-5 shrink-0" />
+              <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} />
             )}
             <span className="whitespace-nowrap">
-              {isLoggingOut ? 'Signing out...' : 'Sign Out'}
+              {isLoggingOut ? 'Signing out…' : 'Sign Out'}
             </span>
           </button>
         </div>

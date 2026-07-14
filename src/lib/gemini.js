@@ -177,6 +177,12 @@ export async function generateJson(limiterKey, prompt, zodSchema, configOverride
       // Validate parsed content against caller-provided Zod schema
       const validation = zodSchema.safeParse(parsedJson);
       if (!validation.success) {
+        const issuesSummary = validation.error.issues.map((issue) => ({
+          path: issue.path,
+          code: issue.code,
+          message: issue.message,
+        }));
+        console.error('[NIVO DIAGNOSTICS] Zod Validation Failure Details:', JSON.stringify(issuesSummary, null, 2));
         throw new NivoAIError(
           'INVALID_STRUCTURED_OUTPUT',
           'Provider JSON output failed Zod schema validation rules.',

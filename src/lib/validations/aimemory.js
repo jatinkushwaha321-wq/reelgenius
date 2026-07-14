@@ -30,24 +30,18 @@ const scriptSummarySchema = z.string()
 const pillarSchema = z.string()
   .trim()
   .min(1, 'Content pillar cannot be empty or whitespace-only')
-  .max(AIMEMORY_LIMITS.PILLAR_MAX_LENGTH, 'Content pillar exceeds maximum length limit');
-
 // 1. Full internal schema matching database structure
 export const aiMemorySchema = z.object({
   userId: z.string().regex(objectIdRegex, { message: 'Invalid User ID format' }),
   profileId: z.string().regex(objectIdRegex, { message: 'Invalid Profile ID format' }),
-  creatorSummary: creatorSummarySchema.optional().default(''),
   recentTopics: z.array(topicSchema).max(AIMEMORY_LIMITS.TOPICS_MAX_COUNT).optional().default([]),
   recentHooks: z.array(hookSchema).max(AIMEMORY_LIMITS.HOOKS_MAX_COUNT).optional().default([]),
   recentScriptSummaries: z.array(scriptSummarySchema).max(AIMEMORY_LIMITS.SCRIPT_SUMMARIES_MAX_COUNT).optional().default([]),
-  contentPillars: z.array(pillarSchema).max(AIMEMORY_LIMITS.PILLARS_MAX_COUNT).optional().default([]),
 });
 
 // 2. Update schema (explicity excludes userId and profileId to prevent ownership overwrites)
 export const aiMemoryUpdateSchema = z.object({
-  creatorSummary: creatorSummarySchema.optional(),
   recentTopics: z.array(topicSchema).max(AIMEMORY_LIMITS.TOPICS_MAX_COUNT).optional(),
   recentHooks: z.array(hookSchema).max(AIMEMORY_LIMITS.HOOKS_MAX_COUNT).optional(),
   recentScriptSummaries: z.array(scriptSummarySchema).max(AIMEMORY_LIMITS.SCRIPT_SUMMARIES_MAX_COUNT).optional(),
-  contentPillars: z.array(pillarSchema).max(AIMEMORY_LIMITS.PILLARS_MAX_COUNT).optional(),
 }).strict();

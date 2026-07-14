@@ -360,3 +360,29 @@ body {
     animation: none !important;
   }
 }
+
+/* ----------------------------------------------------------------
+   Dashboard input field
+   ---------------------------------------------------------------- */
+.nivo-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.5rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nivo-input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.nivo-input:focus {
+  border-color: rgba(167, 139, 250, 0.3);
+  box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.08);
+}
+

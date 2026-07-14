@@ -28,14 +28,11 @@ export const creatorProfileSchema = z.object({
   niche: z.string().max(100).trim().optional(),
   subNiches: z.array(z.string().max(100).trim()).optional(),
   contentPillars: z.array(contentPillarSchema).optional(),
-  audiencePersona: z
-    .object({
-      ageRange: z.string().max(50).trim().optional(),
-      interests: z.array(z.string().max(100).trim()).optional(),
-      painPoints: z.array(z.string().max(200).trim()).optional(),
-      platforms: z.array(z.string().max(100).trim()).optional(),
-    })
-    .optional(),
+  audiencePersona: z.object({
+    behaviorProfile: z.string().max(500).trim().optional(),
+    interests: z.array(z.string().max(100).trim()).optional(),
+    painPoints: z.array(z.string().max(200).trim()).optional(),
+  }).optional(),
   brandIdentity: z
     .object({
       tone: z.array(z.string().max(50).trim()).optional(),

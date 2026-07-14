@@ -22,19 +22,6 @@ const aiMemorySchema = new mongoose.Schema({
     required: true,
     unique: true, // Guarantees a single AIMemory document per CreatorProfile
   },
-  creatorSummary: {
-    type: String,
-    maxlength: AIMEMORY_LIMITS.CREATOR_SUMMARY_MAX_LENGTH,
-    trim: true,
-    default: '',
-    validate: {
-      validator: function(val) {
-        // Allow empty string, but reject whitespace-only strings
-        return typeof val === 'string' && (val.trim().length > 0 || val === '');
-      },
-      message: 'Creator summary cannot be whitespace-only.',
-    },
-  },
   recentTopics: {
     type: [{
       type: String,
@@ -78,21 +65,6 @@ const aiMemorySchema = new mongoose.Schema({
         return v.length <= AIMEMORY_LIMITS.SCRIPT_SUMMARIES_MAX_COUNT;
       },
       message: `recentScriptSummaries array cannot exceed ${AIMEMORY_LIMITS.SCRIPT_SUMMARIES_MAX_COUNT} entries.`,
-    },
-  },
-  contentPillars: {
-    type: [{
-      type: String,
-      maxlength: AIMEMORY_LIMITS.PILLAR_MAX_LENGTH,
-      trim: true,
-      validate: nonWhitespaceValidator, // Enforce individual element trimming & non-empty
-    }],
-    default: [],
-    validate: {
-      validator: function(v) {
-        return v.length <= AIMEMORY_LIMITS.PILLARS_MAX_COUNT;
-      },
-      message: `contentPillars array cannot exceed ${AIMEMORY_LIMITS.PILLARS_MAX_COUNT} entries.`,
     },
   },
 }, {

@@ -28,37 +28,27 @@ export function normalizeMemoryText(text) {
   return text.trim().replace(/\s+/g, ' ');
 }
 
-/**
- * Merges and filters rolling-history arrays, ensuring exact case-insensitive deduplication,
- * recency movement, display casing preservation, and size bounds (M4.7 Deduplication).
- */
 function mergeHistoryArray(existingArray, incomingArray, maxLimit) {
-  const normalizedExisting = existingArray.map(normalizeMemoryText).filter(Boolean);
-  
-  // Track original casing variations: lowercaseKey -> originalCase
-  const casingMap = new Map();
-  normalizedExisting.forEach((val) => {
-    casingMap.set(val.toLowerCase(), val);
-  });
+  // Helper to normalize strings for comparison (trim, lowercase, collapse repeated whitespace)
+  const normalizeForComparison = (str) => {
+    if (typeof str !== 'string') return '';
+    return str.trim().toLowerCase().replace(/\s+/g, ' ');
+  };
 
-  const normalizedIncoming = (incomingArray || [])
-    .map(normalizeMemoryText)
-    .filter(Boolean);
+  let result = [...(existingArray || [])];
 
-  let result = [...normalizedExisting];
+  for (const incomingItem of (incomingArray || [])) {
+    if (typeof incomingItem !== 'string') continue;
+    const incomingTrimmed = incomingItem.trim();
+    if (incomingTrimmed.length === 0) continue;
 
-  for (const incomingItem of normalizedIncoming) {
-    const lowerVal = incomingItem.toLowerCase();
-    
-    // Preserve original casing if it already exists, otherwise adopt new casing
-    const casingToUse = casingMap.has(lowerVal) ? casingMap.get(lowerVal) : incomingItem;
+    const incomingNormalized = normalizeForComparison(incomingTrimmed);
 
-    // Remove old occurrence to shift it to the end (treating it as recent)
-    result = result.filter((item) => item.toLowerCase() !== lowerVal);
+    // Remove ALL older normalized duplicates (case-insensitive, whitespace-collapsed)
+    result = result.filter((item) => normalizeForComparison(item) !== incomingNormalized);
 
-    // Append to end (newest)
-    result.push(casingToUse);
-    casingMap.set(lowerVal, casingToUse);
+    // Append the new accepted value (trimmed at boundaries, but preserving casing & internal whitespace)
+    result.push(incomingTrimmed);
   }
 
   // Cap the array keeping only the N newest elements
@@ -128,11 +118,9 @@ export async function ensureAIMemory({ userId, profileId }) {
     doc = await AIMemory.create({
       userId,
       profileId,
-      creatorSummary: '',
       recentTopics: [],
       recentHooks: [],
       recentScriptSummaries: [],
-      contentPillars: [],
     });
     return doc;
   } catch (err) {
@@ -159,84 +147,6 @@ export class NivoMemoryConflictError extends Error {
     this.name = 'NivoMemoryConflictError';
     this.code = 'MEMORY_CONFLICT';
     this.cause = originalError;
-  }
-}
-
-/**
- * Updates the creatorSummary string.
- * Whitespace-only summaries are normalized to empty string.
- */
-export async function updateCreatorSummary({ userId, profileId, creatorSummary }) {
-  validateObjectId(userId, 'userId');
-  validateObjectId(profileId, 'profileId');
-
-  if (typeof creatorSummary !== 'string') {
-    throw new Error('creatorSummary must be a string.');
-  }
-
-  const normalizedSummary = normalizeMemoryText(creatorSummary);
-
-  if (normalizedSummary.length > AIMEMORY_LIMITS.CREATOR_SUMMARY_MAX_LENGTH) {
-    throw new Error(
-      `Creator summary exceeds maximum allowed limit of ${AIMEMORY_LIMITS.CREATOR_SUMMARY_MAX_LENGTH} characters.`
-    );
-  }
-
-  let attempt = 0;
-  while (true) {
-    try {
-      const doc = await ensureAIMemory({ userId, profileId });
-      doc.creatorSummary = normalizedSummary;
-      return await doc.save();
-    } catch (err) {
-      // Retry only on version conflicts, fetching fresh document states
-      if (err.name === 'VersionError' && attempt < MAX_MUTATION_ATTEMPTS - 1) {
-        attempt++;
-        continue;
-      }
-      if (err.name === 'VersionError') {
-        throw new NivoMemoryConflictError(
-          'Failed to update creator summary due to persistent concurrent version conflicts.',
-          err
-        );
-      }
-      throw err;
-    }
-  }
-}
-
-/**
- * Replaces the contentPillars array, rejecting updates that exceed the cap.
- */
-export async function replaceContentPillars({ userId, profileId, contentPillars }) {
-  validateObjectId(userId, 'userId');
-  validateObjectId(profileId, 'profileId');
-
-  if (!Array.isArray(contentPillars)) {
-    throw new Error('contentPillars must be an array.');
-  }
-
-  const processedPillars = processContentPillars(contentPillars, AIMEMORY_LIMITS.PILLARS_MAX_COUNT);
-
-  let attempt = 0;
-  while (true) {
-    try {
-      const doc = await ensureAIMemory({ userId, profileId });
-      doc.contentPillars = processedPillars;
-      return await doc.save();
-    } catch (err) {
-      if (err.name === 'VersionError' && attempt < MAX_MUTATION_ATTEMPTS - 1) {
-        attempt++;
-        continue;
-      }
-      if (err.name === 'VersionError') {
-        throw new NivoMemoryConflictError(
-          'Failed to replace content pillars due to persistent concurrent version conflicts.',
-          err
-        );
-      }
-      throw err;
-    }
   }
 }
 
