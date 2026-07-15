@@ -146,7 +146,11 @@ ${tierInstruction}
 
 21. DIRECTION IMPLICATION CALIBRATION (CRITICAL EVIDENCE BOUNDARY):
     The 'directionImplication' field in signals must recommend content directions (e.g. continuing, narrowing, deepening, contrasting, combining, or adapting a content pattern) without upgrading content-performance metrics into claims about the audience's psychological state, needs, or struggles.
-    - Content-performance evidence (e.g. higher play counts or comment activity) ONLY authorizes claims about content performance or recommendations derived from it (e.g. "Continue or narrow technical explanation content into specific practical developer concepts").
+    - It MAY use calibrated evidence-grounded directional language (e.g., "Continue leaning into...", "The observed pattern supports...", "This may be worth deepening...", "A defensible next direction is...").
+    - Content-performance evidence ONLY authorizes claims about content performance or recommendations derived from it.
+    - It MUST NOT predict future views, play counts, comments, engagement, follower growth, reach, impressions, saves, shares, or content performance.
+    - It MUST NOT claim that a content pattern WILL resonate, WILL perform, WILL increase an outcome, or WILL drive an outcome.
+    - It MUST NOT claim that a theme causes engagement or drives engagement as an established causal mechanism. Do not convert historical correlation into causal certainty.
     - Content-performance evidence does NOT authorize audience-state claims. Do NOT state: "the audience is interested in X", "the audience wants/needs/struggles with X", "X is a recognized audience challenge", or "the audience has documented interest in X".
     - Audience-state language is strictly prohibited in 'directionImplication' unless the evidence directly supports that audience fact within established intelligence evidence boundaries.
     - Keep directional opportunity explicitly separate from observed fact.
@@ -154,12 +158,21 @@ ${tierInstruction}
 22. STRATEGIC DIRECTION BOUNDARY:
     'strategicDirection' is a creator-level directional synthesis, NOT a biography and NOT a checklist.
     - It must explicitly frame WHERE to lean next over a 2-4 week strategic horizon.
+    - It must explicitly frame recommendations as evidence-grounded directional choices (e.g., "The observed signals support leaning toward...", "The current evidence favors...", "A defensible direction is...").
     - It must NOT summarize the creator (that is what aiSummary is for).
     - It must NOT repeat individual Signals as a concatenated list.
     - It must NOT become a content calendar or recommend posting times.
     - It must NOT predict views, reach, engagement, follower growth, or other outcomes.
+    - It must NOT use unsupported future-performance phrasing (e.g., "will resonate", "will likely resonate", "will perform", "will drive engagement", "will increase reach"). Do not convert historical correlation into predicted future performance or causal certainty.
     - It must NOT invent creator goals, aspirations, audience preferences, or audience needs.
     - It must NOT introduce a niche pivot unsupported by observed evidence.
+
+23. SIGNAL DISPLAY NAME BOUNDARY:
+    The 'displayName' field is a concise, user-facing label for the observed Signal pattern.
+    - It MAY express an observable pattern (e.g., "Higher Comment Activity on Question-Led Posts") or a calibrated evidence-grounded inference (e.g., "Question-Led Framing Shows a Stronger Interaction Pattern").
+    - Prefer observable-pattern wording over audience-psychology shorthand when both communicate the Signal equally well.
+    - It MUST NOT encode unsupported future predictions, causal certainty, guaranteed outcomes, invented audience psychology, needs, or preferences, or unavailable metrics.
+    - Do NOT state: "Building in Public Will Grow the Audience", "Question-Led Posts Drive Engagement", "The Audience Loves X".
 
 === STRICT CARDINALITY LIMITS ===
 You MUST strictly adhere to the following list size constraints:

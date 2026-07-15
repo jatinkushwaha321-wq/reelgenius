@@ -21,6 +21,17 @@ const EPISTEMIC_VIOLATION_PATTERNS = [
 ];
 
 /**
+ * Prohibited phrases that claim unobservable metrics (reach, impressions, saves, shares).
+ * These must be contextually bounded to avoid false positives (e.g. "reach out").
+ */
+const UNAVAILABLE_METRIC_PATTERNS = [
+  { pattern: /\b(?:audience|increase[d]?|boosts?|improves?|higher|content|organic)\s+reach\b|\breach\s+and\s+discoverability\b/i, category: 'unavailable-metric' },
+  { pattern: /\b(?:high|more|increase[d]?)\s+impressions\b|\bimpression\s+counts?\b/i, category: 'unavailable-metric' },
+  { pattern: /\bsave\s+rate\b|\b(?:high\s+)?save\s+counts?\b|\bmore\s+saves\b/i, category: 'unavailable-metric' },
+  { pattern: /\bshare\s+rate\b|\b(?:high\s+)?share\s+counts?\b|\b(?:more|drives?|increase[d]?)\s+shares\b/i, category: 'unavailable-metric' },
+];
+
+/**
  * Fields to scan for epistemic violations.
  * Maps field path to extraction function.
  */
@@ -45,6 +56,7 @@ const SCANNED_FIELDS = [
 const SIGNAL_SCANNED_FIELDS = [
   { path: 'audienceBehavior', key: 'audienceBehavior' },
   { path: 'creatorTrait', key: 'creatorTrait' },
+  { path: 'directionImplication', key: 'directionImplication' },
 ];
 
 /**
@@ -56,6 +68,11 @@ const SIGNAL_SCANNED_FIELDS = [
 function findEpistemicViolation(text) {
   if (!text || typeof text !== 'string') return null;
   for (const rule of EPISTEMIC_VIOLATION_PATTERNS) {
+    if (rule.pattern.test(text)) {
+      return { matchedPattern: rule.pattern.toString(), category: rule.category };
+    }
+  }
+  for (const rule of UNAVAILABLE_METRIC_PATTERNS) {
     if (rule.pattern.test(text)) {
       return { matchedPattern: rule.pattern.toString(), category: rule.category };
     }
