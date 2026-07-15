@@ -76,3 +76,11 @@ Features deferred to V2:
 *   OAuth logins (Google/GitHub)
 *   Midjourney/DALL-E image generators
 *   Database-backed creator metrics panel
+
+---
+
+## 🔒 V1 Deployment Constraint
+
+NIVO V1 currently relies on process-local concurrency locks for quota-critical AI/scraping workflows.
+Initial V1 deployment must run as a persistent single application instance/process.
+Serverless, horizontally scaled, clustered, or multi-instance execution requires concurrency-control re-evaluation before deployment.

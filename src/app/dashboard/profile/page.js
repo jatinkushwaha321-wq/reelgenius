@@ -196,11 +196,23 @@ export default function ProfilePage() {
   /* Empty — No Profile configured */
   if (state === 'empty') {
     return (
-      <div className="flex flex-col gap-10 pt-2">
+      <div className="flex flex-col gap-10 pt-2 pb-20">
+        {/* Workspace Header */}
+        <section className="flex flex-col sm:flex-row sm:items-start justify-between gap-5 border-b border-white/5 pb-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2.5">
+              <StatusDot color="violet" />
+              <SectionLabel>Creator Intelligence</SectionLabel>
+            </div>
+            <h1 className="text-xl font-semibold text-white/90">Creator Profile</h1>
+            <p className="text-[13px] text-white/40 mt-1.5 max-w-md leading-relaxed">
+              NIVO&apos;s current understanding of your niche, voice, audience, and content positioning.
+            </p>
+          </div>
+        </section>
+
         <section>
-          <StatusDot color="violet" />
-          <SectionLabel>Creator Context</SectionLabel>
-          <p className="text-[15px] leading-relaxed text-white/40 max-w-lg mt-5 mb-8">
+          <p className="text-[15px] leading-relaxed text-white/60 max-w-lg mt-2 mb-8">
             NIVO begins with your public creator presence.
             Provide the profile NIVO should observe.
           </p>
@@ -270,15 +282,19 @@ export default function ProfilePage() {
   );
 
   return (
-    <div className="flex flex-col gap-10 pt-2">
-      <section>
-        <StatusDot color="violet" />
-        <SectionLabel>Creator Context</SectionLabel>
-        <p className="text-[13px] leading-relaxed text-white/30 max-w-lg mt-5">
-          {hasObservation
-            ? 'NIVO has observed this creator profile. Factual presence evidence is populated.'
-            : 'Source identity configured. Observation has not yet been performed.'}
-        </p>
+    <div className="flex flex-col gap-10 pt-2 pb-20">
+      {/* Workspace Header */}
+      <section className="flex flex-col sm:flex-row sm:items-start justify-between gap-5 border-b border-white/5 pb-6">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2.5">
+            <StatusDot color="violet" />
+            <SectionLabel>Creator Intelligence</SectionLabel>
+          </div>
+          <h1 className="text-xl font-semibold text-white/90">Creator Profile</h1>
+          <p className="text-[13px] text-white/40 mt-1.5 max-w-md leading-relaxed">
+            NIVO&apos;s current understanding of your niche, voice, audience, and content positioning.
+          </p>
+        </div>
       </section>
 
       {/* Configured Source */}
@@ -498,7 +514,7 @@ export default function ProfilePage() {
                   <div className="flex flex-col gap-1">
                     <span className="text-[13px] font-medium text-white/85 flex items-center gap-2">
                       <StatusDot color="violet" />
-                      Intelligence Synthesis Active
+                      Creator Intelligence Active
                     </span>
                     <span className="text-[11px] text-white/35">
                       Synthesized on {new Date(profile.analyzedAt).toLocaleString()}
@@ -526,17 +542,17 @@ export default function ProfilePage() {
                 <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 flex flex-col gap-4">
                   <span className="text-[9px] tracking-[0.15em] uppercase text-white/30">Niche positioning</span>
                   <div className="flex flex-col gap-3">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-[10px] text-white/30 uppercase tracking-wider">Primary Niche</span>
-                      <span className="text-[12px] text-white/85 font-medium">{profile.niche || 'Derivation unavailable'}</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[11px] font-medium text-white/50 uppercase tracking-widest">Primary Niche</span>
+                      <span className="text-[15px] leading-relaxed text-white/85 font-medium">{profile.niche || 'Derivation unavailable'}</span>
                     </div>
 
                     {profile.subNiches && profile.subNiches.length > 0 && (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] text-white/30 uppercase tracking-wider">Sub-Niches</span>
-                        <div className="flex flex-wrap gap-1.5 mt-0.5">
+                      <div className="flex flex-col gap-2 mt-2">
+                        <span className="text-[11px] font-medium text-white/50 uppercase tracking-widest">Sub-Niches</span>
+                        <div className="flex flex-wrap gap-2">
                           {profile.subNiches.map((sub, i) => (
-                            <span key={i} className="px-2 py-0.5 text-[10px] text-white/60 bg-white/[0.03] border border-white/[0.05] rounded">
+                            <span key={i} className="px-2.5 py-1 text-[11px] font-medium text-white/70 bg-white/[0.04] border border-white/[0.08] rounded">
                               {sub}
                             </span>
                           ))}
@@ -545,9 +561,9 @@ export default function ProfilePage() {
                     )}
 
                     {profile.postingFrequency && (
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[10px] text-white/30 uppercase tracking-wider">Posting cadence</span>
-                        <span className="text-[12px] text-white/70">{profile.postingFrequency}</span>
+                      <div className="flex flex-col gap-1 mt-2">
+                        <span className="text-[11px] font-medium text-white/50 uppercase tracking-widest">Posting cadence</span>
+                        <span className="text-[14px] leading-[1.65] text-white/75">{profile.postingFrequency}</span>
                       </div>
                     )}
                   </div>
@@ -556,25 +572,35 @@ export default function ProfilePage() {
                 {/* Brand Identity Card */}
                 <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 flex flex-col gap-4">
                   <span className="text-[9px] tracking-[0.15em] uppercase text-white/30">Brand voice & values</span>
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-4">
                     {profile.brandIdentity?.tone && profile.brandIdentity.tone.length > 0 && (
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[10px] text-white/30 uppercase tracking-wider">Tone Profile</span>
-                        <span className="text-[12px] text-white/80">{profile.brandIdentity.tone.join(', ')}</span>
+                      <div className="flex flex-col gap-2">
+                        <span className="text-[11px] font-medium text-white/50 uppercase tracking-widest">Tone Profile</span>
+                        <div className="flex flex-wrap gap-2">
+                          {profile.brandIdentity.tone.map((t, i) => (
+                            <span key={i} className="px-2.5 py-1 text-[11px] font-medium text-white/70 bg-white/[0.04] border border-white/[0.08] rounded">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     )}
 
                     {profile.brandIdentity?.values && profile.brandIdentity.values.length > 0 && (
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[10px] text-white/30 uppercase tracking-wider">Observed Core Values</span>
-                        <span className="text-[12px] text-white/80">{profile.brandIdentity.values.join(', ')}</span>
+                      <div className="flex flex-col gap-1 mt-1">
+                        <span className="text-[11px] font-medium text-white/50 uppercase tracking-widest">Observed Core Values</span>
+                        <ul className="list-disc pl-5 text-[14px] leading-[1.65] text-white/75 flex flex-col gap-1.5 mt-1">
+                          {profile.brandIdentity.values.map((val, i) => (
+                            <li key={i}>{val}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
 
                     {profile.brandIdentity?.uniqueSellingPoints && profile.brandIdentity.uniqueSellingPoints.length > 0 && (
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[10px] text-white/30 uppercase tracking-wider">Unique Selling Points</span>
-                        <ul className="list-disc pl-4 text-[12px] text-white/75 flex flex-col gap-0.5 mt-0.5">
+                      <div className="flex flex-col gap-1 mt-1">
+                        <span className="text-[11px] font-medium text-white/50 uppercase tracking-widest">Unique Selling Points</span>
+                        <ul className="list-disc pl-5 text-[14px] leading-[1.65] text-white/75 flex flex-col gap-1.5 mt-1">
                           {profile.brandIdentity.uniqueSellingPoints.map((usp, i) => (
                             <li key={i}>{usp}</li>
                           ))}
@@ -587,21 +613,21 @@ export default function ProfilePage() {
                 {/* Audience Behavior Card */}
                 <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 flex flex-col gap-4 md:col-span-2">
                   <span className="text-[9px] tracking-[0.15em] uppercase text-white/30">Audience observations</span>
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-5">
                     {profile.audiencePersona?.behaviorProfile && (
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[10px] text-white/30 uppercase tracking-wider">Engagement behavior</span>
-                        <p className="text-[12px] leading-relaxed text-white/75 mt-0.5">{profile.audiencePersona.behaviorProfile}</p>
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[11px] font-medium text-white/50 uppercase tracking-widest">Engagement behavior</span>
+                        <p className="text-[14px] leading-[1.65] text-white/75">{profile.audiencePersona.behaviorProfile}</p>
                       </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-1">
                       {profile.audiencePersona?.interests && profile.audiencePersona.interests.length > 0 && (
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-white/30 uppercase tracking-wider">Inferred Interests</span>
-                          <div className="flex flex-wrap gap-1.5 mt-0.5">
+                        <div className="flex flex-col gap-2">
+                          <span className="text-[11px] font-medium text-white/50 uppercase tracking-widest">Inferred Interests</span>
+                          <div className="flex flex-wrap gap-2">
                             {profile.audiencePersona.interests.map((interest, i) => (
-                              <span key={i} className="px-2 py-0.5 text-[10px] text-white/60 bg-white/[0.02] border border-white/[0.04] rounded">
+                              <span key={i} className="px-2.5 py-1 text-[11px] font-medium text-white/70 bg-white/[0.04] border border-white/[0.06] rounded">
                                 {interest}
                               </span>
                             ))}
@@ -610,11 +636,11 @@ export default function ProfilePage() {
                       )}
 
                       {profile.audiencePersona?.painPoints && profile.audiencePersona.painPoints.length > 0 && (
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-white/30 uppercase tracking-wider">Potential Pain Points</span>
-                          <div className="flex flex-wrap gap-1.5 mt-0.5">
+                        <div className="flex flex-col gap-2">
+                          <span className="text-[11px] font-medium text-white/50 uppercase tracking-widest">Potential Pain Points</span>
+                          <div className="flex flex-wrap gap-2">
                             {profile.audiencePersona.painPoints.map((pain, i) => (
-                              <span key={i} className="px-2 py-0.5 text-[10px] text-red-300/60 bg-red-400/[0.02] border border-red-400/[0.08] rounded">
+                              <span key={i} className="px-2.5 py-1 text-[11px] font-medium text-red-300/80 bg-red-400/[0.05] border border-red-400/[0.15] rounded">
                                 {pain}
                               </span>
                             ))}
@@ -632,10 +658,10 @@ export default function ProfilePage() {
                     <div className="flex flex-col gap-3">
                       {profile.contentPillars.map((pillar, i) => (
                         <div key={i} className="flex justify-between items-start gap-4 pb-3 border-b border-white/[0.02] last:border-b-0 last:pb-0">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-[12px] font-medium text-white/85">{pillar.name}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[14px] font-medium text-white/90">{pillar.name}</span>
                             {pillar.description && (
-                              <p className="text-[11px] leading-relaxed text-white/40 mt-0.5">{pillar.description}</p>
+                              <p className="text-[13px] leading-[1.65] text-white/50">{pillar.description}</p>
                             )}
                           </div>
                           {typeof pillar.percentage === 'number' && pillar.percentage > 0 && (
@@ -653,7 +679,7 @@ export default function ProfilePage() {
                 {profile.aiSummary && (
                   <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 flex flex-col gap-2.5 md:col-span-2">
                     <span className="text-[9px] tracking-[0.15em] uppercase text-white/30">AI Strategy summary</span>
-                    <p className="text-[12px] leading-relaxed text-white/70 whitespace-pre-wrap">{profile.aiSummary}</p>
+                    <p className="text-[14px] leading-[1.65] text-white/70 whitespace-pre-wrap">{profile.aiSummary}</p>
                   </div>
                 )}
               </div>

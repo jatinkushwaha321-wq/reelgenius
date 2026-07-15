@@ -7,12 +7,6 @@ import { comparePassword } from '@/lib/password';
 
 const AUTH_SECRET = process.env.AUTH_SECRET;
 
-if (!AUTH_SECRET) {
-  throw new Error(
-    'Please define the AUTH_SECRET environment variable inside .env.local'
-  );
-}
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [

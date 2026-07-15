@@ -6,6 +6,7 @@
  */
 
 import { deriveObservedFact } from './signal-helpers.js';
+import { rankSignals, scoreSignal } from '../intelligence/signal-ranking.js';
 
 /**
  * Computes deterministic normalized performance score for each content item
@@ -110,42 +111,15 @@ export function selectActiveSignals(signals) {
   // 1. Filter: confidence >= 40 (excludes weakened signals where confidence is set to 0)
   const eligibleSignals = signals.filter(sig => sig.confidence >= 40);
 
-  // 2. Score each signal
-  const scoredSignals = eligibleSignals.map((sig) => {
-    const strength = sig.strength || 0;
-    const confidence = sig.confidence || 0;
-    const trend = sig.trend || 'unknown';
-    const updatedAt = sig.updatedAt ? new Date(sig.updatedAt).getTime() : 0;
+  // Use a single reference time for the entire selection process
+  const refTime = Date.now();
 
-    let trendModifier = 0;
-    if (trend === 'rising') trendModifier = 10;
-    else if (trend === 'falling') trendModifier = -5;
-
-    let freshnessModifier = 0;
-    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
-    if (Date.now() - updatedAt <= sevenDaysInMs) {
-      freshnessModifier = 5;
-    }
-
-    const score = (strength * 0.4) + (confidence * 0.4) + trendModifier + freshnessModifier;
-
-    return {
-      signal: sig,
-      score,
-    };
-  });
-
-  // Sort descending by score, tie-break alphabetically by key
-  scoredSignals.sort((a, b) => {
-    if (b.score !== a.score) {
-      return b.score - a.score;
-    }
-    return a.signal.key.localeCompare(b.signal.key);
-  });
+  // 2. Rank signals
+  const rankedSignals = rankSignals(eligibleSignals, refTime);
 
   // Get active signal keys initially ranked in top 8
-  let topRanked = scoredSignals.slice(0, 8);
-  const remaining = scoredSignals.slice(8);
+  let topRanked = rankedSignals.slice(0, 8);
+  let remaining = rankedSignals.slice(8);
 
   // 3. Category Balancing
   const categories = ['audience-engagement', 'content-format', 'creator-style'];
@@ -153,7 +127,7 @@ export function selectActiveSignals(signals) {
   // Find which categories are represented in the entire eligible pool
   const eligibleCategories = new Set(eligibleSignals.map(sig => sig.category));
   const missingCategories = categories.filter(cat => 
-    eligibleCategories.has(cat) && !topRanked.some(tr => tr.signal.category === cat)
+    eligibleCategories.has(cat) && !topRanked.some(tr => tr.category === cat)
   );
 
   // Sort missing categories alphabetically for determinism
@@ -161,7 +135,7 @@ export function selectActiveSignals(signals) {
 
   for (const missingCat of missingCategories) {
     // Find the highest-scoring signal of this missing category from remaining pool
-    const candidateIdx = remaining.findIndex(tr => tr.signal.category === missingCat);
+    const candidateIdx = remaining.findIndex(tr => tr.category === missingCat);
     if (candidateIdx !== -1) {
       const candidate = remaining[candidateIdx];
 
@@ -169,13 +143,13 @@ export function selectActiveSignals(signals) {
       // We want to replace the one with the lowest score (then alphabetical key)
       const catCounts = {};
       topRanked.forEach(tr => {
-        catCounts[tr.signal.category] = (catCounts[tr.signal.category] || 0) + 1;
+        catCounts[tr.category] = (catCounts[tr.category] || 0) + 1;
       });
 
       // Find indices of swappable signals
       const swappableIndices = [];
       topRanked.forEach((tr, idx) => {
-        if (catCounts[tr.signal.category] >= 2) {
+        if (catCounts[tr.category] >= 2) {
           swappableIndices.push(idx);
         }
       });
@@ -185,10 +159,14 @@ export function selectActiveSignals(signals) {
         swappableIndices.sort((aIdx, bIdx) => {
           const aSig = topRanked[aIdx];
           const bSig = topRanked[bIdx];
-          if (aSig.score !== bSig.score) {
-            return aSig.score - bSig.score;
+          const scoreA = scoreSignal(aSig, refTime);
+          const scoreB = scoreSignal(bSig, refTime);
+          if (scoreA !== scoreB) {
+            return scoreA - scoreB;
           }
-          return bSig.signal.key.localeCompare(aSig.signal.key); // alphabetical tie-break
+          const keyA = aSig.key || '';
+          const keyB = bSig.key || '';
+          return keyB.localeCompare(keyA); // alphabetical tie-break
         });
 
         const replaceIdx = swappableIndices[0];
@@ -199,18 +177,13 @@ export function selectActiveSignals(signals) {
         remaining[candidateIdx] = replaced;
 
         // Re-sort remaining just in case we need it for subsequent categories
-        remaining.sort((a, b) => {
-          if (b.score !== a.score) {
-            return b.score - a.score;
-          }
-          return a.signal.key.localeCompare(b.signal.key);
-        });
+        remaining = rankSignals(remaining, refTime);
       }
     }
   }
 
   // Keep final selected signals (max 8)
-  const finalSelected = topRanked.map(tr => tr.signal);
+  const finalSelected = topRanked;
 
   // Build refMap (sig_001, sig_002, ...)
   const refMap = new Map();

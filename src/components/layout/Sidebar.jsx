@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Lightbulb, User, LogOut, Loader2 } from 'lucide-react';
+import { Activity, Lightbulb, User, LogOut, Loader2, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { icon: Activity, label: 'Overview', href: '/dashboard' },
   { icon: Lightbulb, label: 'Ideas', href: '/dashboard/ideas' },
+  { icon: FileText, label: 'Scripts', href: '/dashboard/scripts' },
 ];
 
 const systemItems = [
@@ -76,7 +77,10 @@ export function Sidebar() {
   };
 
   const renderNavLink = (item) => {
-    const isActive = pathname === item.href;
+    // Exact match for most, prefix match for scripts
+    const isActive = item.href === '/dashboard/scripts' 
+      ? pathname.startsWith('/dashboard/scripts')
+      : pathname === item.href;
     return (
       <Link
         key={item.href}

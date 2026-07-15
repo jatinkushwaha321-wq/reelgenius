@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader2, Check, AlertCircle, Plus, Trash2, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 /**
  * Layout Primitives
@@ -52,6 +54,11 @@ export default function IdeasPage() {
   // Card specific loading / error state maps
   const [cardActionStates, setCardActionStates] = useState({}); // { ideaId: 'saving' | 'dismissing' | 'idle' }
   const [cardErrors, setCardErrors] = useState({}); // { ideaId: 'error message' }
+  const [scriptCache, setScriptCache] = useState({}); // { ideaId: Script }
+  const [scriptGenerating, setScriptGenerating] = useState({}); // { ideaId: boolean }
+  const [scriptMetadataError, setScriptMetadataError] = useState(false);
+
+  const router = useRouter();
 
   // Cooldown timer interval ref
   const timerRef = useRef(null);
@@ -137,6 +144,26 @@ export default function IdeasPage() {
         }
       } else {
         setLoadError('Failed to load active content directions.');
+      }
+
+      // 3. Fetch Scripts (N+1 avoidance)
+      try {
+        const scriptsRes = await fetch('/api/scripts');
+        if (scriptsRes.ok) {
+          const scriptsJson = await scriptsRes.json();
+          const scriptsList = scriptsJson.data?.scripts || [];
+          const scriptMap = {};
+          scriptsList.forEach(s => {
+            scriptMap[s.sourceIdeaId] = s;
+          });
+          setScriptCache(scriptMap);
+          setScriptMetadataError(false);
+        } else {
+          setScriptMetadataError(true);
+        }
+      } catch (scriptErr) {
+        console.error('Failed to load Script metadata:', scriptErr);
+        setScriptMetadataError(true);
       }
 
     } catch (err) {
@@ -288,6 +315,35 @@ export default function IdeasPage() {
     } catch (err) {
       setCardErrors(prev => ({ ...prev, [ideaId]: 'Network error. Failed to dismiss candidate.' }));
       setCardActionStates(prev => ({ ...prev, [ideaId]: 'idle' }));
+    }
+  };
+
+  const handleGenerateScript = async (ideaId) => {
+    setScriptGenerating(prev => ({ ...prev, [ideaId]: true }));
+    setCardErrors(prev => ({ ...prev, [ideaId]: '' }));
+    try {
+      const res = await fetch('/api/scripts/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ideaId })
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        const code = json.error?.code;
+        if (code === 'SCRIPT_HYGIENE_ERROR') {
+          setCardErrors(prev => ({ ...prev, [ideaId]: 'Generated script was rejected for violating hygiene rules.' }));
+        } else if (code === 'SCRIPT_FINALIZED' || code === 'SCRIPT_CONFLICT') {
+          setCardErrors(prev => ({ ...prev, [ideaId]: 'Cannot overwrite finalized script.' }));
+        } else {
+          setCardErrors(prev => ({ ...prev, [ideaId]: json.message || 'Failed to generate script.' }));
+        }
+      } else {
+        router.push(`/dashboard/scripts/${ideaId}`);
+      }
+    } catch (err) {
+      setCardErrors(prev => ({ ...prev, [ideaId]: 'Network error generating script.' }));
+    } finally {
+      setScriptGenerating(prev => ({ ...prev, [ideaId]: false }));
     }
   };
 
@@ -472,25 +528,25 @@ export default function IdeasPage() {
 
                   {/* Hook Suggestion */}
                   {cand.hook && (
-                    <div className="border-l border-violet-400/20 bg-violet-400/[0.01] px-4 py-2 text-[12px] italic text-white/60 leading-relaxed font-serif">
+                    <div className="border-l border-violet-400/20 bg-violet-400/[0.01] px-4 py-2 text-[14px] italic text-white/70 leading-relaxed font-serif">
                       {cand.hook}
                     </div>
                   )}
 
                   {/* Concept description */}
                   {cand.description && (
-                    <p className="text-[12px] leading-relaxed text-white/40">
+                    <p className="text-[15px] leading-[1.65] text-white/65">
                       {cand.description}
                     </p>
                   )}
 
                   {/* Grounded Reasoning block */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-white/[0.02]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 border-t border-white/[0.02]">
                     {/* Why this fits you */}
                     {cand.directionSnapshot && (
                       <div className="flex flex-col gap-1.5">
-                        <span className="text-[9px] tracking-[0.15em] uppercase text-white/30">Why this fits you</span>
-                        <p className="text-[12px] leading-relaxed text-white/60">
+                        <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-white/50">Why this fits you</span>
+                        <p className="text-[14px] leading-relaxed text-white/75">
                           {cand.directionSnapshot}
                         </p>
                       </div>
@@ -499,8 +555,8 @@ export default function IdeasPage() {
                     {/* Why now */}
                     {cand.whyNow && (
                       <div className="flex flex-col gap-1.5">
-                        <span className="text-[9px] tracking-[0.15em] uppercase text-white/30">Signal context</span>
-                        <p className="text-[12px] leading-relaxed text-white/60">
+                        <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-white/50">Signal context</span>
+                        <p className="text-[14px] leading-relaxed text-white/75">
                           {cand.whyNow}
                         </p>
                       </div>
@@ -509,14 +565,14 @@ export default function IdeasPage() {
 
                   {/* Novelty Angle or signal snapshots if available */}
                   {cand.sourceSignalSnapshots && cand.sourceSignalSnapshots.length > 0 && (
-                    <div className="flex flex-col gap-1.5 pt-3 border-t border-white/[0.02]">
-                      <span className="text-[9px] tracking-[0.15em] uppercase text-white/20 font-medium">Supported by</span>
-                      <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-[10px] text-white/40">
+                    <div className="flex flex-col gap-2 pt-4 border-t border-white/[0.02]">
+                      <span className="text-[9px] tracking-[0.15em] uppercase text-white/30">Supported by</span>
+                      <div className="flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-white/60">
                         {cand.sourceSignalSnapshots.slice(0, 2).map((sig, idx) => (
                           <div key={idx} className="flex items-center gap-1.5">
-                            <span className="text-white/60 font-medium">{sig.displayName}</span>
+                            <span className="text-white/80 font-medium">{sig.displayName}</span>
                             <span className="h-px w-2 bg-white/10" />
-                            <span className="text-[8px] tracking-[0.12em] font-mono text-violet-300/50 bg-violet-400/[0.04] px-1 rounded uppercase">
+                            <span className="text-[9px] tracking-[0.12em] font-mono text-violet-300/70 bg-violet-400/[0.04] px-1 rounded uppercase">
                               {sig.trend}
                             </span>
                           </div>
@@ -592,23 +648,64 @@ export default function IdeasPage() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-[14px] font-medium text-white/80 leading-snug">
+                <h3 className="text-[15px] font-medium text-white/90 leading-snug">
                   {idea.title}
                 </h3>
 
                 {/* Hook (restrained) */}
                 {idea.hook && (
-                  <div className="border-l border-white/10 pl-3 py-0.5 text-[11px] italic text-white/40 leading-relaxed font-serif">
+                  <div className="border-l border-white/10 pl-3 py-0.5 text-[13px] italic text-white/50 leading-relaxed font-serif">
                     {idea.hook}
                   </div>
                 )}
 
                 {/* Concept */}
                 {idea.description && (
-                  <p className="text-[11px] leading-relaxed text-white/35">
+                  <p className="text-[14px] leading-relaxed text-white/60">
                     {idea.description}
                   </p>
                 )}
+
+                {/* Script Actions & Review Panel */}
+                <div className="pt-3 border-t border-white/[0.02] mt-2 flex items-center justify-between">
+                  {cardErrors[idea._id] && (
+                    <div className="rounded border border-red-500/10 bg-red-500/[0.02] px-3 py-1.5 flex items-start gap-2 mb-2 w-full">
+                      <AlertCircle className="h-3.5 w-3.5 text-red-400/60 shrink-0 mt-0.5" />
+                      <span className="text-[11px] text-white/50 leading-relaxed">{cardErrors[idea._id]}</span>
+                    </div>
+                  )}
+                  
+                  {scriptMetadataError ? (
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-[10px] text-white/40 font-medium uppercase tracking-[0.1em]">
+                        SCRIPT STATUS UNAVAILABLE
+                      </span>
+                    </div>
+                  ) : !scriptCache[idea._id] ? (
+                    <button
+                      onClick={() => handleGenerateScript(idea._id)}
+                      disabled={scriptGenerating[idea._id]}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-medium tracking-[0.1em] uppercase rounded border border-violet-400/25 bg-violet-400/[0.08] text-violet-300/80 hover:bg-violet-400/[0.15] hover:text-violet-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {scriptGenerating[idea._id] && <Loader2 className="h-3 w-3 animate-spin" />}
+                      {scriptGenerating[idea._id] ? 'Generating...' : 'Generate Script'}
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-[11px] text-white/50 font-medium">
+                        {scriptCache[idea._id].status === 'final' ? 'Final' : 'Draft'}
+                        {scriptCache[idea._id].estimatedDurationSeconds != null && ` · ${scriptCache[idea._id].estimatedDurationSeconds} sec`}
+                        {scriptCache[idea._id].totalWordCount != null && ` · ${scriptCache[idea._id].totalWordCount} words`}
+                      </span>
+                      <Link
+                        href={`/dashboard/scripts/${idea._id}`}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 text-[10px] font-medium tracking-[0.1em] uppercase rounded border border-white/[0.06] bg-transparent text-white/50 hover:text-white/80 hover:bg-white/[0.03] transition-all cursor-pointer"
+                      >
+                        Open Script
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </article>
             ))}
           </div>
