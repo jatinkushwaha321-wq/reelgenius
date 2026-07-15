@@ -26,9 +26,36 @@ const EPISTEMIC_VIOLATION_PATTERNS = [
  */
 const UNAVAILABLE_METRIC_PATTERNS = [
   { pattern: /\b(?:audience|increase[d]?|boosts?|improves?|higher|content|organic)\s+reach\b|\breach\s+and\s+discoverability\b/i, category: 'unavailable-metric' },
+  { pattern: /\breach\s+(?:\w+\s+){0,2}(?:audiences?|viewers?|followers?|people|users?)\b/i, category: 'unavailable-metric' },
   { pattern: /\b(?:high|more|increase[d]?)\s+impressions\b|\bimpression\s+counts?\b/i, category: 'unavailable-metric' },
   { pattern: /\bsave\s+rate\b|\b(?:high\s+)?save\s+counts?\b|\bmore\s+saves\b/i, category: 'unavailable-metric' },
   { pattern: /\bshare\s+rate\b|\b(?:high\s+)?share\s+counts?\b|\b(?:more|drives?|increase[d]?)\s+shares\b/i, category: 'unavailable-metric' },
+];
+
+/**
+ * Prescriptive posting-schedule patterns for strategicDirection only.
+ * Rejects recommendations to post at specific times, days, or cadences.
+ * Accepts historical observations about posting patterns.
+ *
+ * Applied ONLY to creatorContext.strategicDirection, not globally.
+ */
+const STRATEGIC_DIRECTION_SCHEDULE_PATTERNS = [
+  // "Post at/around <time>" or "Publish at <time>" — prescriptive time recommendation
+  { pattern: /\b(?:post|publish|schedule|upload)\s+(?:at|around|by)\s+\d/i, category: 'strategic-direction-schedule-recommendation' },
+  // "Maintain/Keep/Continue the <time> posting" or "Maintain the <time> schedule"
+  { pattern: /\b(?:maintain|keep|continue|stick\s+to|stick\s+with)\b[^.]{0,40}\b(?:posting\s+(?:time|schedule|cadence|frequency)|\d{1,2}[:\s]?(?:\d{2})?\s*(?:AM|PM|UTC|am|pm|utc))/i, category: 'strategic-direction-schedule-recommendation' },
+  // "should post on <days>" or "should post on weekdays"
+  { pattern: /\bshould\s+(?:post|publish|upload)\s+(?:on|every|each)\b/i, category: 'strategic-direction-schedule-recommendation' },
+  // "Continue posting on <days>" or "Keep posting every <N> days"
+  { pattern: /\b(?:continue|keep|maintain)\s+posting\s+(?:on|every|each)\b/i, category: 'strategic-direction-schedule-recommendation' },
+  // "Schedule Reels for <time>" or "Schedule posts for <day>"
+  { pattern: /\bschedule\s+(?:reels?|posts?|content|videos?)\s+(?:for|at|on)\b/i, category: 'strategic-direction-schedule-recommendation' },
+  // "Publish at 6 PM" etc.
+  { pattern: /\b(?:post|publish|upload)\s+at\s+\d{1,2}\s*(?:AM|PM|am|pm)/i, category: 'strategic-direction-schedule-recommendation' },
+  // "posting schedule should be maintained"
+  { pattern: /\bposting\s+(?:schedule|cadence|frequency)\s+should\s+be\s+(?:maintained|continued|kept)/i, category: 'strategic-direction-schedule-recommendation' },
+  // "Keep posting every N days"
+  { pattern: /\b(?:post|publish)(?:ing)?\s+every\s+\d/i, category: 'strategic-direction-schedule-recommendation' },
 ];
 
 /**
@@ -57,6 +84,7 @@ const SIGNAL_SCANNED_FIELDS = [
   { path: 'audienceBehavior', key: 'audienceBehavior' },
   { path: 'creatorTrait', key: 'creatorTrait' },
   { path: 'directionImplication', key: 'directionImplication' },
+  { path: 'displayName', key: 'displayName' },
 ];
 
 /**
@@ -73,6 +101,23 @@ function findEpistemicViolation(text) {
     }
   }
   for (const rule of UNAVAILABLE_METRIC_PATTERNS) {
+    if (rule.pattern.test(text)) {
+      return { matchedPattern: rule.pattern.toString(), category: rule.category };
+    }
+  }
+  return null;
+}
+
+/**
+ * Scans strategicDirection text against schedule-recommendation patterns.
+ * Applied only to creatorContext.strategicDirection.
+ *
+ * @param {string} text - Text to scan
+ * @returns {object|null} First matched violation { matchedPattern, category } or null
+ */
+function findScheduleViolation(text) {
+  if (!text || typeof text !== 'string') return null;
+  for (const rule of STRATEGIC_DIRECTION_SCHEDULE_PATTERNS) {
     if (rule.pattern.test(text)) {
       return { matchedPattern: rule.pattern.toString(), category: rule.category };
     }
@@ -191,6 +236,22 @@ export function parseIntelligenceOutput(rawOutput, refMap, contentTier, existing
       );
       throw error;
     }
+  }
+
+  // 2b. STRATEGIC DIRECTION SCHEDULE GUARD — Field-specific prescriptive schedule rejection
+  const sdText = data.creatorContext?.strategicDirection;
+  const scheduleViolation = findScheduleViolation(sdText);
+  if (scheduleViolation) {
+    const error = new Error(
+      `Epistemic guardrail violation in creatorContext.strategicDirection: ${scheduleViolation.category}`
+    );
+    error.code = 'EPISTEMIC_VIOLATION';
+    error.fieldPath = 'creatorContext.strategicDirection';
+    error.violationCategory = scheduleViolation.category;
+    console.error(
+      `[NIVO EPISTEMIC GUARD] Rejected intelligence output. Field: creatorContext.strategicDirection, Category: ${scheduleViolation.category}`
+    );
+    throw error;
   }
 
   //    Check signal-level fields

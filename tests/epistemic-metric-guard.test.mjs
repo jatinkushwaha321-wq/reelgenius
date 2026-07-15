@@ -74,6 +74,8 @@ function createTestPayload(fieldPath, phrase) {
     payload.signals[0].creatorTrait = phrase;
   } else if (fieldPath === 'directionImplication') {
     payload.signals[0].directionImplication = phrase;
+  } else if (fieldPath === 'displayName') {
+    payload.signals[0].displayName = phrase;
   }
 
   return payload;
@@ -173,6 +175,39 @@ assert(promptText.includes('Prefer observable-pattern wording over audience-psyc
 
 // C7, C8: No generic predictive regex was introduced.
 testGuard('directionImplication', 'This pattern drives engagement.', false, 'C8: "drives engagement" is NOT rejected by parser (prompt-only)');
+
+// === DISPLAYNAME SCANNING TESTS ===
+console.log('\n=== DISPLAYNAME SCANNING TESTS ===\n');
+
+// D-R: displayName rejection cases (existing guards apply)
+testGuard('displayName', 'Audience Reach Increased on Technical Reels', true, 'D-R1: displayName rejects "Audience Reach"');
+testGuard('displayName', 'High Save Counts on Career Posts', true, 'D-R2: displayName rejects "High Save Counts"');
+testGuard('displayName', 'More Impressions on Reels', true, 'D-R3: displayName rejects "More Impressions"');
+const catDA = testGuard('displayName', 'Audience Answered Questions on Technical Posts', true, 'D-R4: displayName rejects "Audience Answered Questions"');
+assert(catDA === 'comment-text-dependency', 'D-R4: correct category is comment-text-dependency');
+
+// D-A: displayName acceptance cases
+testGuard('displayName', 'Technical Explanations Drive High Engagement', false, 'D-A1: displayName permits "Technical Explanations Drive High Engagement"');
+testGuard('displayName', 'Question-Led Framing Shows a Stronger Interaction Pattern', false, 'D-A2: displayName permits "Question-Led Framing Shows a Stronger Interaction Pattern"');
+testGuard('displayName', 'Reels as Primary Engagement Format', false, 'D-A3: displayName permits "Reels as Primary Engagement Format"');
+testGuard('displayName', 'Motivational & Career Guidance Content Resonates', false, 'D-A4: displayName permits "Motivational & Career Guidance Content Resonates"');
+testGuard('displayName', 'Broad & Niche Hashtag Strategy for Discoverability', false, 'D-A5: displayName permits "Broad & Niche Hashtag Strategy for Discoverability"');
+testGuard('displayName', 'Creator Shares Technical Insights', false, 'D-A6: displayName permits "Creator Shares Technical Insights"');
+
+// === REACH CONTEXT AUDIT TESTS ===
+console.log('\n=== REACH CONTEXT AUDIT TESTS ===\n');
+
+// Reach as distribution outcome claim — should be rejected
+testGuard('directionImplication', 'Use this strategy to reach relevant audiences.', true, 'REACH-R1: rejects "reach relevant audiences"');
+testGuard('directionImplication', 'Hashtags help reach a broader audience.', true, 'REACH-R2: rejects "reach a broader audience"');
+testGuard('directionImplication', 'This format can reach more viewers.', true, 'REACH-R3: rejects "reach more viewers"');
+testGuard('directionImplication', 'Use niche keywords to reach new audiences.', true, 'REACH-R4: rejects "reach new audiences"');
+
+// Reach as ordinary verb — should be accepted
+testGuard('strategicDirection', 'Creators can reach out to peers.', false, 'REACH-A1: permits "reach out"');
+testGuard('directionImplication', 'Reach out to collaborators.', false, 'REACH-A2: permits "Reach out to collaborators"');
+testGuard('creatorTrait', 'The creator shares technical insights.', false, 'REACH-A3: permits "creator shares" (control)');
+testGuard('creatorTrait', 'This saves time when explaining the concept.', false, 'REACH-A4: permits "saves time" (control)');
 
 console.log(`\nTotals: ${pass} PASS, ${fail} FAIL`);
 if (fail > 0) process.exit(1);

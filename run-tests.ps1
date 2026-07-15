@@ -32,4 +32,8 @@ node tests/signal-evidence-contract.test.mjs
 if (!$?) { exit 1 }
 node tests/intelligence-provider-schema.test.mjs
 if (!$?) { exit 1 }
+node tests/epistemic-metric-guard.test.mjs
+if (!$?) { exit 1 }
+node tests/strategic-direction-schedule-guard.test.mjs
+if (!$?) { exit 1 }
 npm run build
