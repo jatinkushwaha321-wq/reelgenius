@@ -3,6 +3,7 @@ import ObservedContent from '@/models/ObservedContent';
 import Signal from '@/models/Signal';
 import { generateJson } from '../gemini.js';
 import { intelligenceOutputSchema } from '../validations/intelligence.js';
+import { intelligenceResponseSchema } from './intelligence-response-schema.js';
 import { buildEvidencePacket } from './build-evidence-packet.js';
 import { buildIntelligencePrompt } from './build-intelligence-prompt.js';
 import { computeCadence } from './compute-cadence.js';
@@ -84,7 +85,8 @@ export async function runCreatorIntelligence({ profile, userId }) {
         uniqueSellingPoints: ["string (max 200 chars) (optional, max 5 items)"]
       },
       postingFrequency: "string (max 200 chars)",
-      aiSummary: "string (max 2000 chars, holistic summary referencing metadata patterns and bio details only)"
+      aiSummary: "string (max 2000 chars, holistic summary referencing metadata patterns and bio details only)",
+      strategicDirection: "string (max 1500 chars, strategic direction synthesis; follow the strategic direction and evidence-tier instructions in the prompt)"
     },
     signals: [
       {
@@ -121,7 +123,11 @@ export async function runCreatorIntelligence({ profile, userId }) {
   const limiterKey = `user_intel_${userId}`;
   let rawResponse;
   try {
-    rawResponse = await generateJson(limiterKey, prompt, intelligenceOutputSchema);
+    rawResponse = await generateJson(limiterKey, prompt, intelligenceOutputSchema, {
+      config: {
+        responseSchema: intelligenceResponseSchema,
+      },
+    });
   } catch (err) {
     console.error('Gemini content generation failed in runCreatorIntelligence:', err);
     throw err; // Propagate classified NivoAIError

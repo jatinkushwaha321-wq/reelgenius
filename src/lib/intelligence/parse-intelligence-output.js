@@ -33,6 +33,10 @@ const SCANNED_FIELDS = [
     path: 'creatorContext.aiSummary',
     extract: (data) => data.creatorContext?.aiSummary,
   },
+  {
+    path: 'creatorContext.strategicDirection',
+    extract: (data) => data.creatorContext?.strategicDirection,
+  },
 ];
 
 /**

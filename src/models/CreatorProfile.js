@@ -107,6 +107,11 @@ const creatorProfileSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    strategicDirection: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     analyzedAt: {
       type: Date,
       default: null,

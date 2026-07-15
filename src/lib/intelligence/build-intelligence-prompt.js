@@ -31,6 +31,7 @@ We have very sparse observation data (1 to 4 items).
 - You MUST analyze and derive the 'creatorContext' object (niche, pillars, audience, brand, etc.) cautiously.
 - You MUST set the top-level 'signals' array to EXACTLY an empty array: []
 - In the 'creatorContext.aiSummary', you MUST explicitly acknowledge that the observation history is extremely limited (e.g., "Based on a limited sample of X posts...").
+- You MUST set 'creatorContext.strategicDirection' to EXACTLY an empty string: ''
 `;
   } else if (contentTier === 'sparse_signals') {
     tierInstruction = `
@@ -40,6 +41,7 @@ We have moderate observation data (5 to 9 items).
 - You MUST output a MAXIMUM of 5 signals in the 'signals' array.
 - For all signals, you MUST cap the 'confidence' scores at a MAXIMUM of 50.
 - In the 'creatorContext.aiSummary', you MUST explicitly acknowledge that the analysis is based on a limited sample size.
+- In 'creatorContext.strategicDirection', you MUST explicitly acknowledge that the strategic direction is tentative due to the limited sample size. Keep the direction brief (2-3 sentences maximum).
 `;
   } else {
     tierInstruction = `
@@ -48,6 +50,7 @@ We have normal observation data (10+ items).
 - You may derive 'creatorContext' and output 'signals'.
 - You MUST output a MAXIMUM of 10 signals in the 'signals' array.
 - Use the normal 0-100 range for 'strength' and 'confidence'.
+- 'creatorContext.strategicDirection' may provide full strategic synthesis grounded in the identified signals.
 `;
   }
 
@@ -147,6 +150,16 @@ ${tierInstruction}
     - Content-performance evidence does NOT authorize audience-state claims. Do NOT state: "the audience is interested in X", "the audience wants/needs/struggles with X", "X is a recognized audience challenge", or "the audience has documented interest in X".
     - Audience-state language is strictly prohibited in 'directionImplication' unless the evidence directly supports that audience fact within established intelligence evidence boundaries.
     - Keep directional opportunity explicitly separate from observed fact.
+
+22. STRATEGIC DIRECTION BOUNDARY:
+    'strategicDirection' is a creator-level directional synthesis, NOT a biography and NOT a checklist.
+    - It must explicitly frame WHERE to lean next over a 2-4 week strategic horizon.
+    - It must NOT summarize the creator (that is what aiSummary is for).
+    - It must NOT repeat individual Signals as a concatenated list.
+    - It must NOT become a content calendar or recommend posting times.
+    - It must NOT predict views, reach, engagement, follower growth, or other outcomes.
+    - It must NOT invent creator goals, aspirations, audience preferences, or audience needs.
+    - It must NOT introduce a niche pivot unsupported by observed evidence.
 
 === STRICT CARDINALITY LIMITS ===
 You MUST strictly adhere to the following list size constraints:

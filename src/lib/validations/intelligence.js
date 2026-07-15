@@ -114,6 +114,12 @@ const signalsPreprocess = z.preprocess((val) => {
   return val;
 }, z.array(geminiSignalSchema).min(0).max(10));
 
+// Preprocess helper for strategicDirection (normalizes null/undefined to empty string)
+const strategicDirectionPreprocess = z.preprocess((val) => {
+  if (val === null || val === undefined) return '';
+  return val;
+}, z.string().max(1500).trim().optional().default(''));
+
 // Full Gemini intelligence output schema
 export const intelligenceOutputSchema = z.object({
   creatorContext: z.object({
@@ -133,6 +139,7 @@ export const intelligenceOutputSchema = z.object({
     }),
     postingFrequency: z.string().min(1).max(200).trim(),
     aiSummary: z.string().min(1).max(2000).trim(),
+    strategicDirection: strategicDirectionPreprocess,
   }),
   signals: signalsPreprocess,
 });

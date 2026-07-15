@@ -168,6 +168,7 @@ export async function persistIntelligence({
           },
           postingFrequency: creatorContext.postingFrequency,
           aiSummary: creatorContext.aiSummary,
+          strategicDirection: creatorContext.strategicDirection,
           analyzedAt: analysisTimestamp,
         },
       },
