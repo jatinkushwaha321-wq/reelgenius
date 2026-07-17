@@ -89,27 +89,6 @@ Low
 
 ## Milestone 2
 
-Memory Refactor
-
-Objective
-
-Separate persistent creator memory from temporary reasoning.
-
-Deliverables
-
-- memory manager
-- memory interfaces
-- idea history
-- evaluation history
-
-Risk
-
-Medium
-
----
-
-## Milestone 3
-
 Reasoning Engine V2
 
 Objective
@@ -128,7 +107,7 @@ High
 
 ---
 
-## Milestone 4
+## Milestone 3
 
 Evaluator
 
@@ -145,6 +124,27 @@ Deliverables
 Risk
 
 High
+
+---
+
+## Milestone 4
+
+Memory Refactor
+
+Objective
+
+Separate persistent creator memory from temporary reasoning.
+
+Deliverables
+
+- memory manager
+- memory interfaces
+- idea history
+- evaluation history
+
+Risk
+
+Medium
 
 ---
 
