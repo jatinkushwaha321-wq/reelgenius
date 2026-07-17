@@ -48,6 +48,8 @@ node tests/build-idea-prompt-v2.test.mjs
 if (!$?) { exit 1 }
 node tests/evaluation-report-schema.test.mjs
 if (!$?) { exit 1 }
+node tests/build-evaluator-prompt.test.mjs
+if (!$?) { exit 1 }
 node tests/reasoning-engine-v2-schema.test.mjs
 if (!$?) { exit 1 }
 npm run build
