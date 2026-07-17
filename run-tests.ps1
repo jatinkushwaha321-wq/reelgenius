@@ -40,6 +40,8 @@ node tests/reasoning-engine-mvp.test.mjs
 if (!$?) { exit 1 }
 node tests/creator-identity.test.mjs
 if (!$?) { exit 1 }
+node tests/build-reasoning-v2-prompt.test.mjs
+if (!$?) { exit 1 }
 node tests/reasoning-engine-v2-schema.test.mjs
 if (!$?) { exit 1 }
 npm run build
