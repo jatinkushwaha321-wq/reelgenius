@@ -1,6 +1,6 @@
 # Evaluator
 
-> Status: Draft v1.0
+> Status: Draft v1.1
 > Owner: NIVO Creator Intelligence
 > Used By: Reasoning Engine V2, Memory
 
@@ -68,6 +68,12 @@ The Evaluator is responsible for:
 
 ✓ scoring overall strategic quality
 
+✓ validating reasoning alignment
+
+✓ validating opportunity fidelity
+
+✓ validating generation contract compliance
+
 The Evaluator is NOT responsible for:
 
 ✗ generating ideas
@@ -88,35 +94,35 @@ Candidate Idea
 
 ↓
 
-Identity Check
+Reasoning Contract Validation
 
 ↓
 
-Belief Check
+Identity Alignment
 
 ↓
 
-Audience Check
+Opportunity Fidelity
 
 ↓
 
-Constraint Check
+Generation Contract Compliance
 
 ↓
 
-Novelty Check
+Audience Alignment
 
 ↓
 
-Strategic Value Check
+Novelty Evaluation
 
 ↓
 
-Overall Score
+Strategic Value Assessment
 
 ↓
 
-Accept / Reject
+Evaluation Report
 
 ---
 
@@ -137,6 +143,28 @@ PASS
 FAIL
 
 "Top 5 AI Tools Every Student Should Use"
+
+---
+
+## Reasoning Alignment
+
+Question
+
+Does this idea reinforce the Positioning Thesis and Strategic Direction established by the Reasoning Engine?
+
+The Evaluator should reject ideas that drift away from the approved strategic direction, even if they are individually strong.
+
+---
+
+## Opportunity Fidelity
+
+Question
+
+Does the generated idea remain faithful to the selected strategic opportunity?
+
+The Generator should elaborate on the chosen opportunity rather than invent new strategic directions.
+
+Ideas that drift beyond the selected opportunity should be rejected.
 
 ---
 
@@ -166,23 +194,19 @@ Does this move the audience toward transformation?
 
 ---
 
-## 4. Generation Constraints
+## 4. Generation Contract Compliance
 
 Question
 
-Does the idea violate any strategic boundaries?
+Does the generated idea violate any constraints defined by the Reasoning Engine Generation Contract?
 
-Examples
+This includes:
 
-Generic tool lists
+- identity constraints
+- memory constraints
+- reasoning constraints
 
-Resume advice
-
-Random productivity
-
-Programming tutorials
-
-should fail if defined by the Creator Identity.
+Violation of any mandatory constraint should result in rejection.
 
 ---
 
@@ -244,25 +268,29 @@ Publishing weak ideas damages trust.
 
 # Output
 
-Every evaluation produces:
+Evaluation Report
 
-Overall Score
+Identity Alignment
 
-Decision
+Reasoning Alignment
 
-Accept / Reject
+Opportunity Fidelity
+
+Generation Contract Compliance
+
+Audience Alignment
+
+Novelty
+
+Strategic Value
+
+Overall Verdict
 
 Supporting Evidence
 
-Failed Dimensions
+Rejection Reasons
 
-Strengths
-
-Weaknesses
-
-Confidence
-
-Suggested Memory Updates
+Validated Learnings
 
 ---
 
@@ -282,13 +310,26 @@ Provides supporting evidence.
 
 ## Memory
 
-Stores evaluation history and recurring failures.
+Consumes validated learnings produced by the Evaluator.
+
+Rather than storing every generated idea, Memory stores durable knowledge such as:
+
+- validated strategies
+- successful positioning patterns
+- repeated failure modes
+- recurring rejection reasons
+
+This allows future reasoning cycles to build upon verified intelligence rather than raw generation history.
 
 ---
 
 ## Reasoning Engine
 
-Receives evaluator feedback indirectly through Memory.
+Produces the strategic contract consumed by both the Idea Generator and the Evaluator.
+
+The Evaluator verifies that generated ideas faithfully execute the approved reasoning contract.
+
+Future reasoning cycles consume validated learnings indirectly through Memory.
 
 Generation never bypasses evaluation.
 
@@ -307,6 +348,8 @@ The Evaluator is successful when:
 - rejected ideas are consistently explainable
 
 - accepted ideas feel uniquely authentic to the creator
+
+- generated ideas consistently respect the approved reasoning contract
 
 The objective is not to maximise idea quantity.
 
