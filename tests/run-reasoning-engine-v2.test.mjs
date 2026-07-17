@@ -242,13 +242,7 @@ try {
 // 4. Feature Flag Routing Integration
 console.log('\n--- 4. Feature Flag Routing Integration ---');
 try {
-  // Test Case A: ENABLE_REASONING_ENGINE_V2 = 'true', ENABLE_REASONING_ENGINE_MVP = 'false'
-  process.env.ENABLE_REASONING_ENGINE_V2 = 'true';
-  process.env.ENABLE_REASONING_ENGINE_MVP = 'false';
-  shouldThrow = false;
-  nextResponseText = validV2JsonOutput;
-
-  // We mock the downstream candidate generation response as well so runIdeaGeneration succeeds
+  // Candidate mock
   const mockCandidatesOutput = JSON.stringify({
     candidates: [
       {
@@ -267,26 +261,106 @@ try {
     ]
   });
 
-  // Intercept generateContentInternal to route outputs
+  const mockMvpOutput = JSON.stringify({
+    observations: ['Obs MVP', 'Obs MVP 2'],
+    insights: ['Insight MVP'],
+    strategicOpportunities: [
+      {
+        opportunity: 'Share query optimization guide',
+        audienceTension: 'Fear of interview',
+        creatorLens: 'Use vocabulary',
+        suggestedVocabulary: ['leverage'],
+        supportedByObservationIndexes: [0]
+      },
+      {
+        opportunity: 'Share query optimization guide 2',
+        audienceTension: 'Fear of interview 2',
+        creatorLens: 'Use vocabulary 2',
+        suggestedVocabulary: ['leverage'],
+        supportedByObservationIndexes: [1]
+      }
+    ],
+    rejectedDirections: [{ topic: 'Top Tools', reason: 'Generic' }]
+  });
+
+  // Intercept generateContentInternal to route outputs dynamically based on flags
   ModelsClass.prototype.generateContentInternal = async function (params) {
     const promptText = JSON.stringify(params);
     generateContentCalls.push({ contents: promptText });
-    if (promptText.includes('primary cognitive reasoning stage')) {
+    
+    if (promptText.includes('primary cognitive reasoning stage of NIVO (Reasoning Engine V2)')) {
       return { text: validV2JsonOutput };
+    }
+    if (promptText.includes('You are the primary cognitive reasoning stage of NIVO, a Creator Intelligence platform.')) {
+      return { text: mockMvpOutput };
     }
     return { text: mockCandidatesOutput };
   };
 
+  // Test Case A: ENABLE_REASONING_ENGINE_V2 = 'true', ENABLE_REASONING_ENGINE_MVP = 'false'
+  console.log('  Testing Mode: V2 active, MVP inactive...');
+  process.env.ENABLE_REASONING_ENGINE_V2 = 'true';
+  process.env.ENABLE_REASONING_ENGINE_MVP = 'false';
+  shouldThrow = false;
   generateContentCalls = [];
-  const result = await runIdeaGeneration({
+
+  let result = await runIdeaGeneration({
     profile: mockProfile,
     userId: mockUserId,
     modelName: 'gemini-2.5-flash'
   });
 
-  assert(result.candidatesCreated === 1, 'runIdeaGeneration integrates with V2 flag routing successfully');
-  const v2Call = generateContentCalls.find(c => c.contents.includes('Reasoning Engine V2'));
-  assert(v2Call !== undefined, 'Idea generation pipeline routes to and triggers runReasoningEngineV2');
+  assert(result.candidatesCreated === 1, 'V2 execution runs successfully');
+  assert(generateContentCalls.some(c => c.contents.includes('Reasoning Engine V2')), 'V2 prompt is compiled and called');
+  assert(!generateContentCalls.some(c => c.contents.includes('You are the primary cognitive reasoning stage of NIVO, a Creator Intelligence platform.')), 'MVP path is bypassed');
+
+  // Test Case B: Both V2 and MVP are 'false' (no reasoning)
+  console.log('  Testing Mode: Both V2 and MVP inactive...');
+  process.env.ENABLE_REASONING_ENGINE_V2 = 'false';
+  process.env.ENABLE_REASONING_ENGINE_MVP = 'false';
+  generateContentCalls = [];
+
+  result = await runIdeaGeneration({
+    profile: mockProfile,
+    userId: mockUserId,
+    modelName: 'gemini-2.5-flash'
+  });
+
+  assert(result.candidatesCreated === 1, 'No-reasoning execution runs successfully');
+  assert(generateContentCalls.length === 1, 'Only a single call to Gemini is made (ideation stage)');
+  assert(!generateContentCalls[0].contents.includes('cognitive reasoning stage'), 'No reasoning prompts are constructed or dispatched');
+
+  // Test Case C: V2 = 'false', MVP = 'true'
+  console.log('  Testing Mode: V2 inactive, MVP active...');
+  process.env.ENABLE_REASONING_ENGINE_V2 = 'false';
+  process.env.ENABLE_REASONING_ENGINE_MVP = 'true';
+  generateContentCalls = [];
+
+  result = await runIdeaGeneration({
+    profile: mockProfile,
+    userId: mockUserId,
+    modelName: 'gemini-2.5-flash'
+  });
+
+  assert(result.candidatesCreated === 1, 'Legacy MVP execution runs successfully');
+  assert(generateContentCalls.length === 2, 'Two calls made to Gemini (MVP reasoning + ideation)');
+  assert(generateContentCalls.some(c => c.contents.includes('You are the primary cognitive reasoning stage of NIVO, a Creator Intelligence platform.')), 'Legacy MVP prompt is triggered');
+
+  // Test Case D: Both V2 and MVP are 'true' (V2 precedence validation)
+  console.log('  Testing Mode: Both V2 and MVP active (V2 precedence check)...');
+  process.env.ENABLE_REASONING_ENGINE_V2 = 'true';
+  process.env.ENABLE_REASONING_ENGINE_MVP = 'true';
+  generateContentCalls = [];
+
+  result = await runIdeaGeneration({
+    profile: mockProfile,
+    userId: mockUserId,
+    modelName: 'gemini-2.5-flash'
+  });
+
+  assert(result.candidatesCreated === 1, 'Dual-active execution runs successfully');
+  assert(generateContentCalls.some(c => c.contents.includes('Reasoning Engine V2')), 'V2 prompt is triggered under V2 precedence');
+  assert(!generateContentCalls.some(c => c.contents.includes('You are the primary cognitive reasoning stage of NIVO, a Creator Intelligence platform.')), 'Legacy MVP is bypassed');
 
 } catch (err) {
   console.error(err);
