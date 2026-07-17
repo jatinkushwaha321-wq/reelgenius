@@ -41,8 +41,7 @@ The generated candidate content is supplied under "candidate".
 
 5. EVALUATION TASK
 You must sequentially evaluate the candidate across the following dimensions:
-Reasoning Alignment:
-- Reasoning Alignment: Does the candidate faithfully execute the approved Positioning Thesis and Strategic Direction established by the Reasoning Engine?
+- Reasoning Contract Validation: Does the candidate faithfully execute the approved Positioning Thesis and Strategic Direction established by the Reasoning Engine?
 - Identity Alignment: Does this idea naturally belong to this creator's niche and tone?
 - Opportunity Fidelity: Does the generated idea remain faithful to the selected strategic opportunity?
 - Generation Contract Compliance: Does it violate any of the namespace constraints (identity, memory, reasoning)?
