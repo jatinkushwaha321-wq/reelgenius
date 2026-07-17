@@ -271,7 +271,7 @@ try {
   ModelsClass.prototype.generateContentInternal = async function (params) {
     const promptText = JSON.stringify(params);
     generateContentCalls.push({ contents: promptText });
-    if (promptText.includes('Reasoning Engine V2')) {
+    if (promptText.includes('primary cognitive reasoning stage')) {
       return { text: validV2JsonOutput };
     }
     return { text: mockCandidatesOutput };
