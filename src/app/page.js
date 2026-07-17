@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Menu } from 'lucide-react';
 import EnterNivoCTA from '@/components/landing/EnterNivoCTA';
 import CreatorIntelligenceSection from '@/components/landing/CreatorIntelligenceSection';
 import IntelligenceFieldsSection from '@/components/landing/IntelligenceFieldsSection';
@@ -29,7 +28,6 @@ export default function LandingPage() {
   const [cardHovered, setCardHovered] = useState(false);
   const [eyebrowDotHovered, setEyebrowDotHovered] = useState(false);
   const [obsDotHovered, setObsDotHovered] = useState(false);
-  const [hoveredCapsule, setHoveredCapsule] = useState(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -229,28 +227,11 @@ export default function LandingPage() {
 
           {/* Panel content (above the glass background) */}
           <div className="relative z-10 flex flex-col h-full">
-            {/* ---- TOP BAR: Wordmark + Menu ---- */}
+            {/* ---- TOP BAR: Wordmark ---- */}
             <header className="flex items-center justify-between mb-auto">
               <span className="text-[15px] font-semibold tracking-tight text-white/90 shrink-0">
                 NIVO <span className="text-white/30">/</span>
               </span>
-
-              <button
-                type="button"
-                className="
-                  nivo-glass-light
-                  flex items-center gap-2
-                  rounded-full
-                  px-4 py-2
-                  text-xs font-medium tracking-widest text-white/70 uppercase
-                  transition-colors hover:text-white/90
-                  shrink-0
-                "
-                aria-label="Menu"
-              >
-                <span>Menu</span>
-                <Menu className="h-3.5 w-3.5" strokeWidth={2} />
-              </button>
             </header>
 
             {/* ---- HERO CONTENT ---- */}
@@ -315,28 +296,17 @@ export default function LandingPage() {
                   { id: 'content', label: 'Content Patterns' },
                   { id: 'direction', label: 'Creative Direction' },
                 ].map((capsule) => {
-                  const isHovered = hoveredCapsule === capsule.id;
                   return (
                     <span
                       key={capsule.id}
                       role="listitem"
-                      onMouseEnter={() => setHoveredCapsule(capsule.id)}
-                      onMouseLeave={() => setHoveredCapsule(null)}
                       className="
                         nivo-glass-light
                         rounded-full
                         px-4 py-1.5
-                        text-[10px] font-medium tracking-[0.18em] uppercase
+                        text-[10px] font-medium tracking-[0.18em] text-white/50 uppercase
                         select-none cursor-default
-                        transition-all duration-300 ease-out
                       "
-                      style={{
-                        transform: isHovered ? 'scale(1.03)' : 'scale(1)',
-                        borderColor: isHovered ? 'rgba(255, 255, 255, 0.15)' : undefined,
-                        backgroundColor: isHovered ? 'rgba(139, 92, 246, 0.035)' : undefined,
-                        color: isHovered ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.60)',
-                        boxShadow: isHovered ? '0 0 18px rgba(139, 92, 246, 0.06)' : undefined,
-                      }}
                     >
                       {capsule.label}
                     </span>

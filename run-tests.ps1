@@ -36,4 +36,8 @@ node tests/epistemic-metric-guard.test.mjs
 if (!$?) { exit 1 }
 node tests/strategic-direction-schedule-guard.test.mjs
 if (!$?) { exit 1 }
+node tests/reasoning-engine-mvp.test.mjs
+if (!$?) { exit 1 }
+node tests/creator-identity.test.mjs
+if (!$?) { exit 1 }
 npm run build

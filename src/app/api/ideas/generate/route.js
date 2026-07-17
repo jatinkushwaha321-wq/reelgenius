@@ -4,6 +4,7 @@ import Idea from '@/models/Idea';
 import { getAuthUser } from '@/lib/api-auth';
 import { successResponse, errorResponse } from '@/lib/api-response';
 import { runIdeaGeneration } from '@/lib/ideas/run-idea-generation';
+import { enrichIdeasWithLiveSignals } from '@/lib/ideas/live-signal-context';
 import { NivoAIError } from '@/lib/gemini';
 
 // In-process module-scope Set for generation active lock.
@@ -141,8 +142,9 @@ export async function POST() {
     // 7. Run Idea Generation Orchestrator
     const result = await runIdeaGeneration({ profile, userId });
 
-    // 8. Serialize candidates
+    // 8. Serialize and enrich candidates
     const serializedCandidates = (result.candidates || []).map(serializeIdea);
+    const enrichedCandidates = await enrichIdeasWithLiveSignals(serializedCandidates);
 
     // 9. Return success response
     return successResponse(
@@ -151,8 +153,8 @@ export async function POST() {
         generatedAt: result.candidates[0]?.generatedAt
           ? result.candidates[0].generatedAt.toISOString()
           : new Date().toISOString(),
-        candidateCount: serializedCandidates.length,
-        candidates: serializedCandidates,
+        candidateCount: enrichedCandidates.length,
+        candidates: enrichedCandidates,
       },
       'Idea candidates generated successfully'
     );

@@ -1,5 +1,6 @@
 import connectDB from '@/lib/mongodb';
 import CreatorProfile from '@/models/CreatorProfile';
+import ObservedContent from '@/models/ObservedContent';
 import { getAuthUser } from '@/lib/api-auth';
 import { successResponse, errorResponse } from '@/lib/api-response';
 import { z } from 'zod';
@@ -34,6 +35,7 @@ function serializeProfile(doc) {
   obj.id = obj._id.toString();
   obj.userId = obj.userId.toString();
   delete obj._id;
+  obj.contentFormats = [];
   return obj;
 }
 
@@ -57,8 +59,37 @@ export async function GET() {
       );
     }
 
+    const serialized = serializeProfile(profile);
+
+    // Query ObservedContent format statistics
+    const contentItems = await ObservedContent.find({ profileId: profile._id }).select('format');
+    if (contentItems.length > 0) {
+      const counts = { reel: 0, carousel: 0, image: 0, video: 0 };
+      contentItems.forEach(item => {
+        if (counts[item.format] !== undefined) {
+          counts[item.format]++;
+        }
+      });
+      const total = contentItems.length;
+      const rawFormats = [
+        { key: 'reel', label: 'Reels' },
+        { key: 'carousel', label: 'Carousels' },
+        { key: 'image', label: 'Static Posts' },
+        { key: 'video', label: 'Videos' }
+      ];
+      
+      serialized.contentFormats = rawFormats
+        .map(f => {
+          const count = counts[f.key];
+          const percentage = Math.round((count / total) * 100);
+          return { label: f.label, percentage, count };
+        })
+        .filter(f => f.count > 0)
+        .sort((a, b) => b.percentage - a.percentage);
+    }
+
     return successResponse(
-      { profile: serializeProfile(profile) },
+      { profile: serialized },
       'Profile retrieved'
     );
   } catch (err) {

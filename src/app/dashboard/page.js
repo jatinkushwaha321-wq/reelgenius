@@ -85,6 +85,7 @@ export default function OverviewPage() {
   }, [fetchOverviewData]);
 
   const hasIntelligence = profile && profile.analyzedAt && profile.aiSummary;
+  const allTrendsUnknown = signals.length > 0 && signals.every(s => s.trend === 'unknown');
 
   return (
     <div className="flex flex-col gap-10 pt-2 min-w-0 w-full">
@@ -97,7 +98,7 @@ export default function OverviewPage() {
           </div>
           <h1 className="text-xl font-semibold text-white/90">Overview</h1>
           <p className="text-[13px] text-white/40 mt-1.5 max-w-md leading-relaxed">
-            A current view of your creator intelligence, active signals, and strategic direction.
+            Current intelligence, active signals, and strategic direction.
           </p>
         </div>
       </section>
@@ -142,6 +143,11 @@ export default function OverviewPage() {
                 <span className="text-[11px] text-white/40">
                   Synthesized on {new Date(profile.analyzedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                 </span>
+                {allTrendsUnknown && (
+                  <span className="text-[11px] text-white/20">
+                    Trend indicators are derived from repeated observations over time.
+                  </span>
+                )}
               </>
             )}
           </div>
@@ -187,27 +193,36 @@ export default function OverviewPage() {
         )}
 
         {signalsState === 'success' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {signals.map((sig) => (
-              <article key={sig.id} className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-4">
-                  <h3 className="text-[15px] font-medium text-white/90 leading-snug">
-                    {sig.displayName}
-                  </h3>
-                  <span className="text-[9px] font-medium tracking-[0.15em] uppercase text-violet-300/60 bg-violet-400/[0.04] px-1.5 py-0.5 rounded shrink-0">
-                    {sig.trend}
-                  </span>
-                </div>
-                
-                <div className="flex flex-col gap-1.5 mt-1 border-t border-white/[0.02] pt-3">
-                  <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-white/50">Direction</span>
-                  <p className="text-[14px] leading-relaxed text-white/75">
-                    {sig.directionImplication}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {signals.map((sig) => (
+                <article key={sig.id} className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="text-[15px] font-medium text-white/90 leading-snug">
+                      {sig.displayName}
+                    </h3>
+                    {sig.trend !== 'unknown' && (
+                      <span className="text-[9px] font-medium tracking-[0.15em] uppercase text-violet-300/60 bg-violet-400/[0.04] px-1.5 py-0.5 rounded shrink-0">
+                        {sig.trend}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col gap-1.5 mt-1 border-t border-white/[0.02] pt-3">
+                    <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-white/50">Direction</span>
+                    <p className="text-[14px] leading-relaxed text-white/75">
+                      {sig.directionImplication}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
+            {allTrendsUnknown && (
+              <span className="text-[11px] text-white/15 mt-3 select-none">
+                Signal trends are computed from longitudinal observations.
+              </span>
+            )}
+          </>
         )}
       </section>
 

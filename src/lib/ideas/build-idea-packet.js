@@ -7,6 +7,7 @@
 
 import { deriveObservedFact } from './signal-helpers.js';
 import { rankSignals, scoreSignal } from '../intelligence/signal-ranking.js';
+import { loadCreatorIdentity } from '../identity/load-creator-identity.js';
 
 /**
  * Computes deterministic normalized performance score for each content item
@@ -222,30 +223,35 @@ export function buildIdeaPacket({
   observedContent,
   existingIdeaTitles,
   aiMemory,
+  creatorIdentity,
 }) {
+  const identity = creatorIdentity || loadCreatorIdentity({ profile, signals });
+
   // 1. Build Creator Context
   const creatorContext = {
-    displayName: profile.displayName || '',
+    displayName: identity.identity.displayName || '',
     bio: profile.bio || '',
     category: profile.category || '',
-    niche: profile.niche || '',
-    subNiches: profile.subNiches || [],
-    contentPillars: (profile.contentPillars || []).map(cp => ({
+    niche: identity.identity.niche || '',
+    subNiches: identity.identity.subNiches || [],
+    contentPillars: (identity.identity.contentPillars || []).map(cp => ({
       name: cp.name,
       description: cp.description || '',
       percentage: cp.percentage,
     })),
     audiencePersona: {
-      behaviorProfile: profile.audiencePersona?.behaviorProfile || '',
-      interests: profile.audiencePersona?.interests || [],
-      painPoints: profile.audiencePersona?.painPoints || [],
+      behaviorProfile: identity.audience.behaviorProfile || '',
+      interests: identity.audience.interests || [],
+      painPoints: identity.audience.painPoints || [],
     },
     brandIdentity: {
-      tone: profile.brandIdentity?.tone || [],
-      values: profile.brandIdentity?.values || [],
+      tone: identity.communicationStyle.tone || [],
+      vocabulary: identity.vocabulary || [],
+      values: identity.beliefs || [],
       uniqueSellingPoints: profile.brandIdentity?.uniqueSellingPoints || [],
     },
-    aiSummary: profile.aiSummary || '',
+    aiSummary: identity.identity.aiSummary || '',
+    strategicDirection: identity.identity.strategicDirection || '',
     analyzedAt: profile.analyzedAt ? new Date(profile.analyzedAt).toISOString() : null,
   };
 
@@ -265,9 +271,10 @@ export function buildIdeaPacket({
   const recentContentSlice = sortedRecent.slice(0, 10);
   const recentContentMap = new Set(recentContentSlice.map(item => item._id ? item._id.toString() : null).filter(Boolean));
 
+  const limit = process.env.ENABLE_REASONING_ENGINE_MVP === 'true' ? 1000 : 300;
   const formatContentItem = (item) => ({
     id: item._id ? item._id.toString() : null,
-    caption: item.caption ? item.caption.substring(0, 300) : '',
+    caption: item.caption ? item.caption.substring(0, limit) : '',
     format: item.format || 'unknown',
     hashtags: item.hashtags || [],
     publishedAt: item.publishedAt ? new Date(item.publishedAt).toISOString() : null,

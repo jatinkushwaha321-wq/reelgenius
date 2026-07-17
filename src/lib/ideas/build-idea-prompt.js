@@ -13,6 +13,79 @@ import { buildNivoPrompt } from '../prompts/shared.js';
  * @returns {string} Fully composed prompt text
  */
 export function buildIdeaPrompt({ packet, outputContract }) {
+  if (process.env.ENABLE_REASONING_ENGINE_MVP === 'true' && packet.reasoningContext) {
+    const instruction = `
+You are the creative ideation engine of NIVO.
+Your task is to generate Idea candidates for the creator based on the pre-computed reasoning context.
+
+CRITICAL: REASONING-GUIDED GENERATION PROCESS
+
+Do NOT invent generic niche ideas. Do NOT reason directly over raw metrics.
+Each candidate must be directly derived from the reasoningContext.strategicOpportunities.
+
+For EACH candidate, follow this mandatory derivation sequence:
+
+STEP 1 — CHOOSE A STRATEGIC OPPORTUNITY
+Select one opportunity from reasoningContext.strategicOpportunities.
+Map its supporting signalRef (e.g. 'sig_001') to primarySignalRef.
+This opportunity's details (opportunity, audienceTension, creatorLens, suggestedVocabulary) will define the core thesis, perspective, and constraints of your idea.
+
+STEP 2 — INCORPORATE CREATOR LENS AND AUDIENCE TENSION
+Develop the idea concept so that it addresses the targetAudienceTension using the creatorLens defined in the opportunity.
+Integrate the suggestedVocabulary terms naturally into the hook, title, or concept.
+
+STEP 3 — DEFINE CONCRETE CREATIVE CONTENT
+Generate the final title, concept, topic, hook, and format.
+- Topic: concise normalized subject matter (max 100 chars), NOT repeating the title.
+- Hook: the exact spoken opening or text hook.
+- Format: the content format from the allowed enums.
+
+STEP 4 — ENFORCE EXCLUSIONS (rejectedDirections)
+Inspect reasoningContext.rejectedDirections.
+You must absolutely NOT generate any idea that overlaps with or relates to the topics in rejectedDirections. Any candidate matching or touching a rejected topic will be rejected.
+
+OPERATIONAL RULES:
+1. THE IDEA BOUNDARY:
+- Do NOT generate full scripts, cover concepts, scheduling dates, difficulty, or estimated duration.
+- Focus strictly on generating: primarySignalRef, derivationBasis (which must explain how the opportunity was mapped and how observations/insights support it, max 300 chars), title, concept, topic, format, hook, supporting signal references (must include primarySignalRef), and novelty reason.
+
+2. EPISTEMIC & METRIC BOUNDARY:
+- You must NOT claim or imply access to unobserved metrics. You have NO access to saves, shares, reach, impressions, retention, watch-through, demographics, sentiment analysis, or competitor data.
+- Do NOT convert engagement counts into sentiment, psychology, emotional depth, or performance prediction.
+- NO FABRICATED CREATOR AUTOBIOGRAPHY: You must NEVER invent specific first-person creator history, habits, routines, systems, struggles, past states, or personal transformations that are not explicitly grounded in the supplied profile.
+- THE requiresPersonalFact SEMANTIC GATEWAY: You must explicitly set 'requiresPersonalFact' to true/false for each candidate:
+  - You MUST set requiresPersonalFact to true if ANY final publishable creative field (title, hook, concept) requires the creator to present an unobserved creator-specific factual assertion as true (e.g., "My setup", "How I plan", "My routine").
+  - Set requiresPersonalFact to false ONLY if the idea is executable without asserting ANY creator-specific facts (e.g., situational POVs, skits, technical/professional opinions, general educational frameworks).
+  - Setting requiresPersonalFact to true will reject the candidate, so strive to write non-autobiographical ideas (where requiresPersonalFact is false).
+
+3. NOVELTY & DUPLICATE AVOIDANCE:
+- Do NOT replicate the topics of the 10 most recent posts listed in the context.
+- Do NOT duplicate any topics listed in noveltyContext.recentTopics or titles in noveltyContext.existingIdeaTitles.
+- In "noveltyReason", reference specific recent content that this idea differs from. Do not assert novelty without concrete comparison.
+
+4. STRICT CHARACTER LIMITS:
+- title: max 150 characters
+- topic: max 100 characters
+- concept: max 500 characters
+- contentPillar: max 100 characters
+- hook: max 200 characters
+- noveltyReason: max 300 characters
+- derivationBasis: max 300 characters
+`;
+
+    const filteredContext = {
+      creatorContext: packet.creatorContext,
+      reasoningContext: packet.reasoningContext,
+      noveltyContext: packet.noveltyContext,
+    };
+
+    return buildNivoPrompt({
+      instruction,
+      context: filteredContext,
+      outputContract,
+    });
+  }
+
   const instruction = `
 You are the creative ideation engine of NIVO.
 Your task is to generate 3 to 5 highly specific, actionable content Idea candidates for the creator.
@@ -63,7 +136,7 @@ OPERATIONAL RULES:
   - 'directionImplication' is a directional recommendation, NOT a newly observed fact.
   - A content-performance observedFact (e.g. "posts about tech had 2x likes") ONLY authorizes statements about the performance of that content pattern and recommendations derived from it.
   - You MUST NOT upgrade content-performance facts into audience-state claims. Do NOT claim the audience has an interest, need, struggle, or skill-gap merely because a content pattern performed well.
-  - Do not repeat a stronger audience-state claim (e.g., "audience struggles with Git") merely because it appears inferable from content performance.
+  - do not repeat a stronger audience-state claim (e.g., "audience struggles with Git") merely because it appears inferable from content performance.
   - All generated ideas must be proposed as hypotheses or practical directional opportunities without claiming that the audience has already demonstrated a need or struggle for that exact topic.
 - NO FABRICATED CREATOR AUTOBIOGRAPHY: You must NEVER invent specific first-person creator history, habits, routines, systems, struggles, past states, or personal transformations that are not explicitly grounded in the supplied observations or profile.
   - The provider must not generate an idea that requires the creator to assert personal history, private struggles, emotional states, routines, transformations, sacrifices, failures, private motivations, or life experiences as factual content.

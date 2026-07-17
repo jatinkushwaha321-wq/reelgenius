@@ -571,10 +571,14 @@ export default function IdeasPage() {
                         {cand.sourceSignalSnapshots.slice(0, 2).map((sig, idx) => (
                           <div key={idx} className="flex items-center gap-1.5">
                             <span className="text-white/80 font-medium">{sig.displayName}</span>
-                            <span className="h-px w-2 bg-white/10" />
-                            <span className="text-[9px] tracking-[0.12em] font-mono text-violet-300/70 bg-violet-400/[0.04] px-1 rounded uppercase">
-                              {sig.trend}
-                            </span>
+                            {sig.trend !== 'unknown' && (
+                              <>
+                                <span className="h-px w-2 bg-white/10" />
+                                <span className="text-[9px] tracking-[0.12em] font-mono text-violet-300/70 bg-violet-400/[0.04] px-1 rounded uppercase">
+                                  {sig.trend}
+                                </span>
+                              </>
+                            )}
                           </div>
                         ))}
                       </div>

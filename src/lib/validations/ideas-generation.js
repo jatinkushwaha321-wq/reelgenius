@@ -390,3 +390,23 @@ export const ideaGenerationOutputSchema = z.object({
     .min(1, 'At least one candidate is required')
     .max(5, 'No more than 5 candidates are allowed'),
 });
+
+export const reasoningOutputSchema = z.object({
+  observations: z.array(z.string().trim()).min(1),
+  insights: z.array(z.string().trim()).min(1),
+  strategicOpportunities: z.array(
+    z.object({
+      opportunity: z.string().trim(),
+      audienceTension: z.string().trim(),
+      creatorLens: z.string().trim(),
+      suggestedVocabulary: z.array(z.string().trim()),
+      supportedByObservationIndexes: z.array(z.number().int().nonnegative())
+    })
+  ).min(2).max(5),
+  rejectedDirections: z.array(
+    z.object({
+      topic: z.string().trim(),
+      reason: z.string().trim()
+    })
+  )
+});

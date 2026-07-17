@@ -156,12 +156,12 @@ export function Sidebar() {
 
         {/* ---- Primary Navigation ---- */}
         <nav className="flex-1 pt-1 px-3 flex flex-col gap-0.5 overflow-y-auto">
-          {navItems.map(renderNavLink)}
+          {systemItems.map(renderNavLink)}
 
           {/* Subtle rule separating workspace from system */}
           <div className="my-3 mx-2 h-px bg-white/[0.04]" aria-hidden="true" />
 
-          {systemItems.map(renderNavLink)}
+          {navItems.map(renderNavLink)}
         </nav>
 
         {/* ---- Sign Out ---- */}

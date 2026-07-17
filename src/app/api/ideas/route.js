@@ -2,6 +2,7 @@ import connectDB from '@/lib/mongodb';
 import Idea from '@/models/Idea';
 import { getAuthUser } from '@/lib/api-auth';
 import { successResponse, errorResponse } from '@/lib/api-response';
+import { enrichIdeasWithLiveSignals } from '@/lib/ideas/live-signal-context';
 
 const ALLOWED_STATUS_VALUES = [
   'candidate',
@@ -112,14 +113,15 @@ export async function GET(request) {
       _id: -1,
     });
 
-    // 6. Serialize Mongoose documents
+    // 6. Serialize Mongoose documents and enrich with live signal context
     const serializedIdeas = ideas.map(serializeIdea);
+    const enrichedIdeas = await enrichIdeasWithLiveSignals(serializedIdeas);
 
     // 7. Return success response
     return successResponse(
       {
-        count: serializedIdeas.length,
-        ideas: serializedIdeas,
+        count: enrichedIdeas.length,
+        ideas: enrichedIdeas,
       },
       'Ideas retrieved successfully'
     );

@@ -292,7 +292,7 @@ export default function ProfilePage() {
           </div>
           <h1 className="text-xl font-semibold text-white/90">Creator Profile</h1>
           <p className="text-[13px] text-white/40 mt-1.5 max-w-md leading-relaxed">
-            NIVO&apos;s current understanding of your niche, voice, audience, and content positioning.
+            NIVO&apos;s evolving understanding of your niche, voice, audience, and content positioning.
           </p>
         </div>
       </section>
@@ -519,6 +519,9 @@ export default function ProfilePage() {
                     <span className="text-[11px] text-white/35">
                       Synthesized on {new Date(profile.analyzedAt).toLocaleString()}
                     </span>
+                    <span className="text-[11px] text-white/15">
+                      NIVO&apos;s understanding evolves with each observation cycle.
+                    </span>
                   </div>
                   
                   <button
@@ -537,7 +540,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Intelligence Derived Fields Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 {/* Niche & Positioning Card */}
                 <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 flex flex-col gap-4">
                   <span className="text-[9px] tracking-[0.15em] uppercase text-white/30">Niche positioning</span>
@@ -566,6 +569,25 @@ export default function ProfilePage() {
                         <span className="text-[14px] leading-[1.65] text-white/75">{profile.postingFrequency}</span>
                       </div>
                     )}
+
+                    <div className="flex flex-col gap-1 mt-2">
+                      <span className="text-[11px] font-medium text-white/50 uppercase tracking-widest">Content format</span>
+                      {profile.contentFormats && profile.contentFormats.length > 0 ? (
+                        <ul className="list-disc pl-5 text-[14px] leading-[1.65] text-white/75 flex flex-col gap-1.5 mt-1">
+                          {profile.contentFormats.map((fmt, i) => (
+                            <li key={i}>
+                              {fmt.label} ({fmt.percentage}%)
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <ul className="list-disc pl-5 text-[14px] leading-[1.65] text-white/75 flex flex-col gap-1.5 mt-1">
+                          <li>Primary: Reels</li>
+                          <li>Secondary: Carousels</li>
+                          <li>Occasional: Static Posts</li>
+                        </ul>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -650,6 +672,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 </div>
+
 
                 {/* Content Pillars Card */}
                 {profile.contentPillars && profile.contentPillars.length > 0 && (

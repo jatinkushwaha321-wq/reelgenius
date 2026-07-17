@@ -1,16 +1,18 @@
-import connectDB from '@/lib/mongodb';
-import CreatorProfile from '@/models/CreatorProfile';
-import ObservedContent from '@/models/ObservedContent';
-import Signal from '@/models/Signal';
-import Idea from '@/models/Idea';
-import AIMemory from '@/models/AIMemory';
+import connectDB from '../mongodb.js';
+import CreatorProfile from '../../models/CreatorProfile.js';
+import ObservedContent from '../../models/ObservedContent.js';
+import Signal from '../../models/Signal.js';
+import Idea from '../../models/Idea.js';
+import AIMemory from '../../models/AIMemory.js';
 import { generateJson, DEFAULT_GEMINI_MODEL } from '../gemini.js';
-import { ideaGenerationOutputSchema } from '../validations/ideas-generation.js';
+import { ideaGenerationOutputSchema, reasoningOutputSchema } from '../validations/ideas-generation.js';
+import { buildReasoningPrompt } from './build-reasoning-prompt.js';
 import { buildIdeaPacket } from './build-idea-packet.js';
 import { buildIdeaPrompt } from './build-idea-prompt.js';
 import { parseIdeaOutput, filterDuplicateCandidates } from './parse-idea-output.js';
 import { rankCandidates } from './rank-candidates.js';
 import { persistIdeas } from './persist-ideas.js';
+import { loadCreatorIdentity } from '../identity/load-creator-identity.js';
 
 /**
  * Orchestrates the full candidate idea generation cycle.
@@ -91,6 +93,9 @@ export async function runIdeaGeneration({ profile, userId, modelName = DEFAULT_G
   // Load all observed content to build the packet
   const allObservedContent = await ObservedContent.find({ profileId });
 
+  // 8c. Load Creator Identity (Milestone 1)
+  const creatorIdentity = loadCreatorIdentity({ profile: freshProfile, signals });
+
   // 9. Build Generation Packet
   const packet = buildIdeaPacket({
     profile: freshProfile,
@@ -98,7 +103,23 @@ export async function runIdeaGeneration({ profile, userId, modelName = DEFAULT_G
     observedContent: allObservedContent,
     existingIdeaTitles,
     aiMemory,
+    creatorIdentity,
   });
+
+  // 9b. Conditionally trigger the Reasoning Engine stage
+  if (process.env.ENABLE_REASONING_ENGINE_MVP === 'true') {
+    const reasoningPrompt = buildReasoningPrompt({ packet });
+    const reasoningLimiterKey = `user_reasoning_${userId}`;
+    try {
+      const reasoningJson = await generateJson(reasoningLimiterKey, reasoningPrompt, reasoningOutputSchema, {
+        model: modelName,
+      });
+      packet.reasoningContext = reasoningJson;
+    } catch (err) {
+      console.error('[NIVO] Reasoning Engine MVP stage failed:', err);
+      throw err;
+    }
+  }
 
   // 10. Build Generation Prompt
   const prompt = buildIdeaPrompt({

@@ -3,6 +3,7 @@ import Idea from '@/models/Idea';
 import { getAuthUser } from '@/lib/api-auth';
 import { successResponse, errorResponse } from '@/lib/api-response';
 import { appendAIMemory } from '@/lib/ai-memory';
+import { enrichIdeasWithLiveSignals } from '@/lib/ideas/live-signal-context';
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
@@ -150,10 +151,12 @@ export async function POST(request, { params }) {
       }
     }
 
-    // 8. Return success response
+    // 8. Serialize and enrich with live signal context
+    const [enrichedIdea] = await enrichIdeasWithLiveSignals([serializeIdea(transitionedIdea)]);
+
     return successResponse(
       {
-        idea: serializeIdea(transitionedIdea),
+        idea: enrichedIdea,
         memoryUpdated,
       },
       'Idea candidate accepted successfully'

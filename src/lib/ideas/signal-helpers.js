@@ -123,3 +123,32 @@ export function deriveEvidencePresentation(evidence) {
   cleaned = cleaned.replace(/[.!?]+$/, '');
   return cleaned ? cleaned + '.' : '';
 }
+
+/**
+ * Dynamically computes presentation-layer wording for an idea's Signal Context (whyNow)
+ * based on the current/live state of its primary signal.
+ *
+ * @param {object} signal - A Signal document or signal snapshot containing `trend`
+ * @param {string} [fallbackText] - Fallback text if no signal object is provided
+ * @returns {string}
+ */
+export function deriveSignalContextWording(signal, fallbackText = '') {
+  if (!signal) {
+    return fallbackText || '';
+  }
+
+  const trend = signal.trend || 'unknown';
+
+  switch (trend) {
+    case 'rising':
+      return 'Supported by a rising engagement trend across multiple observation cycles.';
+    case 'falling':
+      return 'Supported by a declining engagement trend across multiple observation cycles.';
+    case 'stable':
+      return 'Supported by a stable engagement pattern across repeated observations.';
+    case 'unknown':
+    default:
+      return 'Observed pattern with insufficient longitudinal history.';
+  }
+}
+

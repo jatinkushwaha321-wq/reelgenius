@@ -174,6 +174,24 @@ ${tierInstruction}
     - It MUST NOT encode unsupported future predictions, causal certainty, guaranteed outcomes, invented audience psychology, needs, or preferences, or unavailable metrics.
     - Do NOT state: "Building in Public Will Grow the Audience", "Question-Led Posts Drive Engagement", "The Audience Loves X".
 
+24. FIELD-SPECIFIC CONCISE OUTPUT CONSTRAINTS (CRITICAL CONTRACTS):
+    - 'creatorContext.postingFrequency':
+      MUST be exactly one concise sentence, maximum approximately 150 characters.
+      It must state ONLY factual, observed posting cadence details (e.g., "The creator posts approximately every 2-3 days, predominantly on weekdays").
+      It MUST NOT contain strategic recommendations/advice (e.g., do NOT suggest "posting weekday afternoons"), posting hour/time recommendations, explanations, or audience interpretations.
+    - 'creatorContext.niche':
+      MUST be a very short, specific category label (1-5 words maximum, e.g., "Software Engineering Education").
+      It MUST NOT be a full sentence or include explanations.
+    - 'signals[].displayName':
+      MUST be a short, clear, user-facing name for the signal (maximum 100 characters).
+      It must be a concise label, NOT a long sentence or explanation.
+    - 'signals[].creatorTrait':
+      MUST be a single concise sentence describing only what the creator does (maximum 200 characters).
+      It MUST NOT contain strategic advice, explanations, or audience interpretations.
+    - 'signals[].audienceBehavior':
+      MUST be a single concise sentence describing only the observed metrics-level audience reaction (maximum 200 characters).
+      It MUST NOT contain psychological speculation, explanations, or strategic advice.
+
 === STRICT CARDINALITY LIMITS ===
 You MUST strictly adhere to the following list size constraints:
 - creatorContext.subNiches: between 1 and 5 items maximum
