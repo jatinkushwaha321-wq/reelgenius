@@ -13,6 +13,7 @@ import { parseIdeaOutput, filterDuplicateCandidates } from './parse-idea-output.
 import { rankCandidates } from './rank-candidates.js';
 import { persistIdeas } from './persist-ideas.js';
 import { loadCreatorIdentity } from '../identity/load-creator-identity.js';
+import { runReasoningEngineV2 } from '../reasoning/run-reasoning-engine-v2.js';
 
 /**
  * Orchestrates the full candidate idea generation cycle.
@@ -107,7 +108,20 @@ export async function runIdeaGeneration({ profile, userId, modelName = DEFAULT_G
   });
 
   // 9b. Conditionally trigger the Reasoning Engine stage
-  if (process.env.ENABLE_REASONING_ENGINE_MVP === 'true') {
+  if (process.env.ENABLE_REASONING_ENGINE_V2 === 'true') {
+    try {
+      const reasoningJson = await runReasoningEngineV2({
+        packet,
+        userId,
+        modelName,
+        memoryContext: aiMemory,
+      });
+      packet.reasoningContext = reasoningJson;
+    } catch (err) {
+      console.error('[NIVO] Reasoning Engine V2 stage failed:', err);
+      throw err;
+    }
+  } else if (process.env.ENABLE_REASONING_ENGINE_MVP === 'true') {
     const reasoningPrompt = buildReasoningPrompt({ packet });
     const reasoningLimiterKey = `user_reasoning_${userId}`;
     try {
