@@ -275,5 +275,63 @@ try {
   assert(err.code === 'NO_VALID_CANDIDATES' && err.message.includes('failed evaluation'), 'Correctly throws NO_VALID_CANDIDATES exception when all fail evaluation');
 }
 
+// 4. Malformed Evaluation Report Rejection
+console.log('\n--- 4. Malformed Evaluation Report Rejection ---');
+try {
+  ModelsClass.prototype.generateContentInternal = async function (params) {
+    const promptText = JSON.stringify(params);
+    generateContentCalls.push({ contents: promptText });
+    if (promptText.includes('primary cognitive reasoning stage of NIVO (Reasoning Engine V2)')) {
+      return { text: validV2JsonOutput };
+    }
+    if (promptText.includes('final cognitive evaluation stage of NIVO (Evaluator V1)')) {
+      return { text: 'invalid json {' };
+    }
+    return { text: mockCandidatesOutput };
+  };
+
+  process.env.ENABLE_REASONING_ENGINE_V2 = 'true';
+  process.env.ENABLE_EVALUATOR_V1 = 'true';
+  generateContentCalls = [];
+
+  await runIdeaGeneration({
+    profile: mockProfile,
+    userId: mockUserId,
+    modelName: 'gemini-2.5-flash'
+  });
+  assert(false, 'Should fail when evaluator returns malformed JSON');
+} catch (err) {
+  assert(err.code === 'INVALID_STRUCTURED_OUTPUT', 'Aborts execution and propagates INVALID_STRUCTURED_OUTPUT when evaluator JSON is malformed');
+}
+
+// 5. Evaluator Provider Error Propagation
+console.log('\n--- 5. Evaluator Provider Error Propagation ---');
+try {
+  ModelsClass.prototype.generateContentInternal = async function (params) {
+    const promptText = JSON.stringify(params);
+    generateContentCalls.push({ contents: promptText });
+    if (promptText.includes('primary cognitive reasoning stage of NIVO (Reasoning Engine V2)')) {
+      return { text: validV2JsonOutput };
+    }
+    if (promptText.includes('final cognitive evaluation stage of NIVO (Evaluator V1)')) {
+      throw new Error('LLM Exception simulated');
+    }
+    return { text: mockCandidatesOutput };
+  };
+
+  process.env.ENABLE_REASONING_ENGINE_V2 = 'true';
+  process.env.ENABLE_EVALUATOR_V1 = 'true';
+  generateContentCalls = [];
+
+  await runIdeaGeneration({
+    profile: mockProfile,
+    userId: mockUserId,
+    modelName: 'gemini-2.5-flash'
+  });
+  assert(false, 'Should fail when evaluator provider encounters an exception');
+} catch (err) {
+  assert(err.code === 'PROVIDER_ERROR' && err.cause.message === 'LLM Exception simulated', 'Aborts execution and propagates PROVIDER_ERROR when LLM crashes during evaluation');
+}
+
 console.log(`\nTotals: ${pass} PASS, ${fail} FAIL`);
 if (fail > 0) process.exit(1);
