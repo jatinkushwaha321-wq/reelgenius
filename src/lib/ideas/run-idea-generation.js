@@ -14,6 +14,7 @@ import { rankCandidates } from './rank-candidates.js';
 import { persistIdeas } from './persist-ideas.js';
 import { loadCreatorIdentity } from '../identity/load-creator-identity.js';
 import { runReasoningEngineV2 } from '../reasoning/run-reasoning-engine-v2.js';
+import { runEvaluator } from '../evaluator/run-evaluator.js';
 
 /**
  * Orchestrates the full candidate idea generation cycle.
@@ -182,21 +183,67 @@ export async function runIdeaGeneration({ profile, userId, modelName = DEFAULT_G
     throw error;
   }
 
+  // 13b. Execute Evaluator V1 if enabled
+  let approvedCandidates = [];
+  // Retained for future analytics, telemetry, and Memory/Evaluator loop integration
+  let rejectedCandidates = [];
+
+  if (process.env.ENABLE_EVALUATOR_V1 === 'true' && packet.reasoningContext) {
+    for (const candidate of filteredCandidates) {
+      const evaluationReport = await runEvaluator({
+        creatorIdentity,
+        reasoningContext: packet.reasoningContext,
+        candidate,
+        userId,
+        modelName,
+      });
+
+      if (evaluationReport.overallVerdict.recommendation === 'APPROVE') {
+        approvedCandidates.push({
+          ...candidate,
+          evaluationReport,
+        });
+      } else {
+        rejectedCandidates.push({
+          ...candidate,
+          evaluationReport,
+        });
+      }
+    }
+  } else {
+    approvedCandidates = filteredCandidates;
+  }
+
+  if (approvedCandidates.length === 0) {
+    const error = new Error('All generated candidate ideas failed evaluation.');
+    error.code = 'NO_VALID_CANDIDATES';
+    throw error;
+  }
+
   // 14. Rank candidates (banded lexicographic — assigns rankKey)
-  rankCandidates(filteredCandidates);
+  rankCandidates(approvedCandidates);
 
   // 15. Persist Candidates (with failure-safe replacement)
   const report = await persistIdeas({
     profile: freshProfile,
     userId,
-    candidates: filteredCandidates,
+    candidates: approvedCandidates,
     modelName,
+  });
+
+  const persistedCandidates = report.candidates.map((doc, idx) => {
+    const obj = typeof doc.toObject === 'function' ? doc.toObject() : { ...doc };
+    const original = approvedCandidates[idx];
+    if (original && original.evaluationReport) {
+      obj.evaluationReport = original.evaluationReport;
+    }
+    return obj;
   });
 
   return {
     generationRunId: report.generationRunId,
-    candidatesCreated: report.candidates.length,
-    candidates: report.candidates,
+    candidatesCreated: persistedCandidates.length,
+    candidates: persistedCandidates,
     model: modelName,
     intelligenceAnalyzedAt: freshProfile.analyzedAt,
   };
