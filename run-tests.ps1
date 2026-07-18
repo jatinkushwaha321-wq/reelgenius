@@ -56,4 +56,19 @@ node tests/pipeline-evaluator.test.mjs
 if (!$?) { exit 1 }
 node tests/reasoning-engine-v2-schema.test.mjs
 if (!$?) { exit 1 }
+node tests/knowledge-contracts.test.mjs
+if (!$?) { exit 1 }
+node tests/extract-knowledge-candidate.test.mjs
+if (!$?) { exit 1 }
+node tests/consolidate-knowledge.test.mjs
+if (!$?) { exit 1 }
+node tests/retrieve-knowledge.test.mjs
+if (!$?) { exit 1 }
+node tests/pipeline-knowledge.test.mjs
+if (!$?) { exit 1 }
 npm run build
+
+
+
+
+

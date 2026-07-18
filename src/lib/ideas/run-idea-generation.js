@@ -15,6 +15,37 @@ import { persistIdeas } from './persist-ideas.js';
 import { loadCreatorIdentity } from '../identity/load-creator-identity.js';
 import { runReasoningEngineV2 } from '../reasoning/run-reasoning-engine-v2.js';
 import { runEvaluator } from '../evaluator/run-evaluator.js';
+import { loadKnowledge, saveKnowledge } from '../knowledge/knowledge-store.js';
+import { extractKnowledgeCandidates } from '../knowledge/extract-knowledge-candidate.js';
+import { consolidateKnowledge } from '../knowledge/consolidate-knowledge.js';
+import { retrieveKnowledge } from '../knowledge/retrieve-knowledge.js';
+
+/**
+ * Extract knowledge candidate hypotheses from approved/rejected candidates.
+ * Enforces evaluation report ID validation and returns the accumulated candidate list.
+ * @private
+ */
+function extractKnowledgeFromCandidates(candidates, userId, profileId) {
+  const extracted = [];
+  for (const candidate of candidates) {
+    if (candidate.evaluationReport) {
+      const reportId = candidate.evaluationReport._id || candidate.evaluationReport.id;
+      if (!reportId) {
+        throw new Error('Evaluation Report ID is missing on evaluation report.');
+      }
+      // Force string format for consistency
+      candidate.evaluationReport.id = reportId.toString();
+
+      const extractedList = extractKnowledgeCandidates(candidate.evaluationReport, candidate, {
+        evaluationReportId: reportId.toString(),
+        userId,
+        profileId,
+      });
+      extracted.push(...extractedList);
+    }
+  }
+  return extracted;
+}
 
 /**
  * Orchestrates the full candidate idea generation cycle.
@@ -41,6 +72,12 @@ export async function runIdeaGeneration({ profile, userId, modelName = DEFAULT_G
   await connectDB();
 
   const profileId = profile._id.toString();
+
+  // Load stored knowledge once near the beginning of orchestration (Single Source of Truth)
+  let storedKnowledge = null;
+  if (process.env.ENABLE_KNOWLEDGE_ENGINE_V1 === 'true') {
+    storedKnowledge = await loadKnowledge(profileId);
+  }
 
   // 2. Verify Profile ownership and existence
   const freshProfile = await CreatorProfile.findOne({ _id: profileId, userId });
@@ -111,11 +148,20 @@ export async function runIdeaGeneration({ profile, userId, modelName = DEFAULT_G
   // 9b. Conditionally trigger the Reasoning Engine stage
   if (process.env.ENABLE_REASONING_ENGINE_V2 === 'true') {
     try {
+      let knowledgeContext = null;
+      if (process.env.ENABLE_KNOWLEDGE_ENGINE_V1 === 'true' && storedKnowledge) {
+        // NOTE: Deliberate architectural decision to limit V1 retrieval context strictly to Creator's niche.
+        // Retrieve niche-aligned validated guidelines only.
+        knowledgeContext = retrieveKnowledge(storedKnowledge, { topic: freshProfile.niche });
+        packet.knowledgeContext = knowledgeContext;
+      }
+
       const reasoningJson = await runReasoningEngineV2({
         packet,
         userId,
         modelName,
         memoryContext: aiMemory,
+        knowledgeContext,
       });
       packet.reasoningContext = reasoningJson;
     } catch (err) {
@@ -185,7 +231,6 @@ export async function runIdeaGeneration({ profile, userId, modelName = DEFAULT_G
 
   // 13b. Execute Evaluator V1 if enabled
   let approvedCandidates = [];
-  // Retained for future analytics, telemetry, and Memory/Evaluator loop integration
   let rejectedCandidates = [];
 
   if (process.env.ENABLE_EVALUATOR_V1 === 'true' && packet.reasoningContext) {
@@ -208,6 +253,23 @@ export async function runIdeaGeneration({ profile, userId, modelName = DEFAULT_G
           ...candidate,
           evaluationReport,
         });
+      }
+    }
+
+    // Knowledge Engine Learning Cycle
+    if (process.env.ENABLE_KNOWLEDGE_ENGINE_V1 === 'true' && storedKnowledge) {
+      try {
+        const extractedCandidates = [];
+        extractedCandidates.push(...extractKnowledgeFromCandidates(approvedCandidates, userId, profileId));
+        extractedCandidates.push(...extractKnowledgeFromCandidates(rejectedCandidates, userId, profileId));
+
+        if (extractedCandidates.length > 0) {
+          // Reuse in-memory collection (storedKnowledge) to ensure single source of truth
+          const consolidated = consolidateKnowledge(storedKnowledge, extractedCandidates);
+          await saveKnowledge(profileId, consolidated);
+        }
+      } catch (err) {
+        console.error('[NIVO] Knowledge Engine cycle failed:', err);
       }
     }
   } else {

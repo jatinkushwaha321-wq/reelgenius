@@ -1,6 +1,7 @@
 import { generateJson, DEFAULT_GEMINI_MODEL } from '../gemini.js';
 import { buildEvaluatorPrompt } from './build-evaluator-prompt.js';
 import { evaluationReportSchema } from './evaluation-report-schema.js';
+import mongoose from 'mongoose';
 
 /**
  * Runs the Evaluator V1 pipeline.
@@ -43,6 +44,8 @@ export async function runEvaluator({
     const validatedJson = await generateJson(limiterKey, prompt, evaluationReportSchema, {
       model: modelName,
     });
+    // Attach a valid ObjectID to the transient Evaluation Report
+    validatedJson.id = new mongoose.Types.ObjectId().toString();
     return validatedJson;
   } catch (err) {
     console.error('[NIVO] Evaluator execution failed:', err);

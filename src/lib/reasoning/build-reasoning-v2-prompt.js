@@ -3,12 +3,20 @@ import { buildNivoPrompt } from '../prompts/shared.js';
 /**
  * Builds the structured prompt for Reasoning Engine V2.
  *
+ * READ-ONLY CONTRACT:
+ * - This function treats `packet`, `memoryContext`, and `knowledgeContext` as immutable inputs and does not mutate them.
+ * 
+ * EXPLICIT RETRIEVAL DTO BOUNDARY:
+ * - `knowledgeContext` must only contain the lightweight retrieval DTO returned by `retrieveKnowledge()`.
+ * - It must never include persistence-specific fields (e.g. database IDs, evidenceReference lists, contradictionHistory, status, or other DB metadata).
+ *
  * @param {object} params
  * @param {object} params.packet - The assembled idea packet containing creator context, signals, and content.
  * @param {object} [params.memoryContext] - Optional memory context containing previous ideas or evaluation history.
+ * @param {object} [params.knowledgeContext] - Optional lightweight retrieval DTO context containing validated knowledge.
  * @returns {string} The fully composed prompt string.
  */
-export function buildReasoningV2Prompt({ packet, memoryContext = null }) {
+export function buildReasoningV2Prompt({ packet, memoryContext = null, knowledgeContext = null }) {
   if (!packet) {
     throw new Error('Prompt build failed: "packet" parameter is required.');
   }
@@ -41,6 +49,10 @@ Review the captions, formats, and performance metrics under "recentContent" and 
 Memory context is provided under "memoryContext" (if present).
 - If "memoryContext" is null, empty, or missing, proceed to reason strictly based on creator identity and signals. Do not invent any historical memories.
 
+5b. KNOWLEDGE CONTEXT
+Knowledge context is provided under "knowledgeContext" (if present) representing accumulated historical learning and validated strategies.
+- Use these validated learnings to guide future reasoning, avoid repeated failure patterns (rejection contexts), and build upon successful creator/audience principles.
+
 6. REASONING TASK
 You must execute the approved strategic reasoning flow. Ensure you reason through each section sequentially:
 - Situation Assessment: Analyze factual observations and emerging patterns.
@@ -68,6 +80,7 @@ Your response must provide fields for situationAssessment, identityInterpretatio
   const context = {
     ...packet,
     memoryContext: memoryContext || packet.memoryContext || null,
+    knowledgeContext: knowledgeContext || packet.knowledgeContext || null,
   };
 
   const outputContract = {

@@ -12,7 +12,7 @@ import { reasoningEngineV2Schema } from './reasoning-engine-v2-schema.js';
  * @param {object} [params.memoryContext] - Optional memory context
  * @returns {Promise<object>} Parsed and validated Reasoning Engine V2 contract
  */
-export async function runReasoningEngineV2({ packet, userId, modelName = DEFAULT_GEMINI_MODEL, memoryContext = null }) {
+export async function runReasoningEngineV2({ packet, userId, modelName = DEFAULT_GEMINI_MODEL, memoryContext = null, knowledgeContext = null }) {
   if (!packet) {
     throw new Error('Reasoning Engine V2 run failed: "packet" parameter is required.');
   }
@@ -21,7 +21,7 @@ export async function runReasoningEngineV2({ packet, userId, modelName = DEFAULT
   }
 
   // 1. Compile the structured prompt
-  const prompt = buildReasoningV2Prompt({ packet, memoryContext });
+  const prompt = buildReasoningV2Prompt({ packet, memoryContext, knowledgeContext });
 
   // 2. Invoke the rate-limited JSON generator
   const limiterKey = `user_reasoning_${userId}`;
