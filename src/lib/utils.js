@@ -61,3 +61,37 @@ export function capitalize(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+/**
+ * Normalizes internal AI/engineering terminology into creator-facing language,
+ * and falls back to a friendly message if clean-up is not possible.
+ *
+ * @param {string} text - Raw AI explanation string
+ * @returns {string} Cleaned, creator-friendly explanation
+ */
+export function getFriendlyWhyNow(text) {
+  const genericFallback = "This recommendation is based on early audience patterns. NIVO will become more confident as it learns from additional content.";
+  if (!text) {
+    return genericFallback;
+  }
+
+  // 1. Perform safe replacements first
+  let cleanText = text;
+  cleanText = cleanText.replace(/longitudinal history/gi, 'audience patterns over time');
+  cleanText = cleanText.replace(/observation pattern/gi, 'content patterns');
+  cleanText = cleanText.replace(/insufficient evidence/gi, 'early audience indicators');
+
+  // 2. Perform hard blocking check only after replacements
+  const lowercaseText = cleanText.toLowerCase();
+  if (
+    lowercaseText.includes('insufficient') ||
+    lowercaseText.includes('longitudinal') ||
+    lowercaseText.includes('observation pattern') ||
+    lowercaseText.includes('confidence internals') ||
+    lowercaseText.includes('placeholder')
+  ) {
+    return genericFallback;
+  }
+
+  return cleanText;
+}

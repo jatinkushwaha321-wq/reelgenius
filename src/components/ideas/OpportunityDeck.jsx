@@ -3,6 +3,7 @@ import { Loader2, Trash2, Plus, AlertCircle, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EvaluatorDetails from './EvaluatorDetails';
 import RejectionDrawer from './RejectionDrawer';
+import { getFriendlyWhyNow } from '@/lib/utils';
 
 /**
  * OpportunityDeck - Presentation UI Component
@@ -22,33 +23,6 @@ export default function OpportunityDeck({
   onAccept,
   onDismiss,
 }) {
-  const getFriendlyWhyNow = (text) => {
-    if (!text) {
-      return "This recommendation is based on early audience patterns. NIVO will become more confident as it learns from additional content.";
-    }
-    
-    const lowercaseText = text.toLowerCase();
-    
-    // Check for internal engineering terms
-    if (
-      lowercaseText.includes('insufficient') ||
-      lowercaseText.includes('longitudinal') ||
-      lowercaseText.includes('observation pattern') ||
-      lowercaseText.includes('confidence internals') ||
-      lowercaseText.includes('placeholder')
-    ) {
-      return "This recommendation is based on early audience patterns. NIVO will become more confident as it learns from additional content.";
-    }
-    
-    // Replace internal terms with clean, creator-facing equivalents
-    let cleanText = text;
-    cleanText = cleanText.replace(/longitudinal history/gi, 'audience patterns over time');
-    cleanText = cleanText.replace(/observation pattern/gi, 'content patterns');
-    cleanText = cleanText.replace(/insufficient evidence/gi, 'early audience indicators');
-    
-    return cleanText;
-  };
-
   // Track active feedback drawer card ID
   const [activeFeedbackId, setActiveFeedbackId] = useState(null);
 

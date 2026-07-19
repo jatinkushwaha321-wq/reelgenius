@@ -266,15 +266,34 @@ export function parseIdeaOutput(rawJson, signalRefMap, creatorDisplayName) {
         continue;
       }
 
-      // --- Deterministic reasoning reconstruction (INTEL-2G.2) ---
-      const format = (cand.format || 'other').trim();
-      const topic = (cand.topic || '').trim().replace(/[.!?]+$/, '');
-      const cleanedFact = deriveEvidencePresentation(primarySignalDoc.evidence);
-      let cleanDirectionReasoning = '';
-      if (cleanedFact) {
-        cleanDirectionReasoning = `This direction expands on an active content signal to propose a ${format} format focused on ${topic}. One supporting observation: ${cleanedFact}`;
+      // --- Precedence: LLM Reasoning -> Template Fallback (Roadmap Phase 4) ---
+      let cleanDirectionReasoning = cand.directionReasoning ? stripSignalRefs(cand.directionReasoning) : '';
+      if (cleanDirectionReasoning) {
+        if (cleanDirectionReasoning.length < MIN_LENGTHS.directionReasoning) {
+          console.warn(`[NIVO] Candidate "${cand.title}" dropped: directionReasoning too short after cleanup (${cleanDirectionReasoning.length} < ${MIN_LENGTHS.directionReasoning}).`);
+          continue;
+        }
+        if (containsPlaceholder(cleanDirectionReasoning)) {
+          console.warn(`[NIVO] Candidate "${cand.title}" dropped: directionReasoning contains placeholder content.`);
+          continue;
+        }
+        if (containsAutobiographyClaim(cleanDirectionReasoning, creatorDisplayName)) {
+          console.warn(`[NIVO] Candidate "${cand.title}" dropped: directionReasoning contains autobiography claim.`);
+          continue;
+        }
+        if (containsNivoIntelligenceViolation(cleanDirectionReasoning)) {
+          console.warn(`[NIVO] Candidate "${cand.title}" dropped: directionReasoning contains NIVO intelligence claim.`);
+          continue;
+        }
       } else {
-        cleanDirectionReasoning = `This direction expands on an active content signal from the analyzed content set to propose a ${format} format focused on ${topic}.`;
+        const format = (cand.format || 'other').trim();
+        const topic = (cand.topic || '').trim().replace(/[.!?]+$/, '');
+        const cleanedFact = deriveEvidencePresentation(primarySignalDoc.evidence);
+        if (cleanedFact) {
+          cleanDirectionReasoning = `This direction expands on an active content signal to propose a ${format} format focused on ${topic}. One supporting observation: ${cleanedFact}`;
+        } else {
+          cleanDirectionReasoning = `This direction expands on an active content signal from the analyzed content set to propose a ${format} format focused on ${topic}.`;
+        }
       }
 
       const strength = primarySignalDoc.strength ?? 0;

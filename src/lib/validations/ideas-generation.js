@@ -382,6 +382,13 @@ export const ideaCandidateSchema = z.object({
         .max(300, 'noveltyReason cannot exceed 300 characters')
         .trim()
     ),
+  directionReasoning: boundedProviderString(500)
+    .pipe(
+      z.string()
+        .max(500, 'directionReasoning cannot exceed 500 characters')
+        .trim()
+    )
+    .optional(),
 });
 
 export const ideaGenerationOutputSchema = z.object({
