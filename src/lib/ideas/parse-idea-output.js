@@ -280,23 +280,25 @@ export function parseIdeaOutput(rawJson, signalRefMap, creatorDisplayName) {
       const strength = primarySignalDoc.strength ?? 0;
       const strengthText = strength >= 80 ? 'high-strength' : (strength >= 60 ? 'moderate-strength' : 'developing');
       
-      let cleanWhyNow = '';
-      if (primarySignalDoc.trend === 'unknown') {
-        cleanWhyNow = `Derived from a ${strengthText} content signal that does not yet have a resolved momentum trend in the analyzed content set.`;
-      } else {
-        let trendText = '';
-        switch (primarySignalDoc.trend) {
-          case 'rising':
-            trendText = 'shows rising momentum';
-            break;
-          case 'stable':
-            trendText = 'shows stable, consistent performance';
-            break;
-          case 'falling':
-            trendText = 'is showing declining momentum';
-            break;
+      let cleanWhyNow = (cand.derivationBasis || '').trim();
+      if (!cleanWhyNow) {
+        if (primarySignalDoc.trend === 'unknown') {
+          cleanWhyNow = `Derived from a ${strengthText} content signal that does not yet have a resolved momentum trend in the analyzed content set.`;
+        } else {
+          let trendText = '';
+          switch (primarySignalDoc.trend) {
+            case 'rising':
+              trendText = 'shows rising momentum';
+              break;
+            case 'stable':
+              trendText = 'shows stable, consistent performance';
+              break;
+            case 'falling':
+              trendText = 'is showing declining momentum';
+              break;
+          }
+          cleanWhyNow = `Derived from a ${strengthText} content signal that ${trendText} relative to the analyzed content set.`;
         }
-        cleanWhyNow = `Derived from a ${strengthText} content signal that ${trendText} relative to the analyzed content set.`;
       }
 
       // --- Candidate is valid: build output (primarySignalRef/derivationBasis are validation-only) ---

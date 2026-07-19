@@ -1,7 +1,9 @@
 import connectDB from '@/lib/mongodb';
 import Script from '@/models/Script';
+import Idea from '@/models/Idea';
 import { getAuthUser } from '@/lib/api-auth';
 import { successResponse, errorResponse } from '@/lib/api-response';
+import { enrichIdeasWithLiveSignals } from '@/lib/ideas/live-signal-context';
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
@@ -21,6 +23,55 @@ function serializeScript(script) {
     generationModel: doc.generationModel,
     generatedAt: doc.generatedAt ? doc.generatedAt.toISOString() : null,
     status: doc.status,
+    createdAt: doc.createdAt ? doc.createdAt.toISOString() : null,
+    updatedAt: doc.updatedAt ? doc.updatedAt.toISOString() : null,
+  };
+}
+
+function serializeIdea(idea) {
+  const doc = idea.toObject ? idea.toObject() : idea;
+  return {
+    _id: doc._id.toString(),
+    userId: doc.userId.toString(),
+    profileId: doc.profileId.toString(),
+    title: doc.title,
+    topic: doc.topic || '',
+    description: doc.description || '',
+    format: doc.format,
+    contentPillar: doc.contentPillar || '',
+    hook: doc.hook || '',
+    status: doc.status,
+    tags: doc.tags || [],
+    isFavorited: !!doc.isFavorited,
+    notes: doc.notes || '',
+    coverConcepts: (doc.coverConcepts || []).map(cc => ({
+      concept: cc.concept || '',
+      headline: cc.headline || '',
+      layout: cc.layout || '',
+      colorPalette: cc.colorPalette || [],
+      composition: cc.composition || '',
+      expressionSuggestion: cc.expressionSuggestion || '',
+      aiImagePrompt: cc.aiImagePrompt || '',
+    })),
+    scheduledFor: doc.scheduledFor ? doc.scheduledFor.toISOString() : null,
+    publishedAt: doc.publishedAt ? doc.publishedAt.toISOString() : null,
+    generationRunId: doc.generationRunId || null,
+    sourceSignalKeys: doc.sourceSignalKeys || [],
+    sourceSignalSnapshots: (doc.sourceSignalSnapshots || []).map(sig => ({
+      key: sig.key,
+      displayName: sig.displayName,
+      strength: sig.strength,
+      confidence: sig.confidence,
+      trend: sig.trend,
+      directionImplication: sig.directionImplication,
+    })),
+    directionSnapshot: doc.directionSnapshot || '',
+    whyNow: doc.whyNow || '',
+    noveltyReason: doc.noveltyReason || '',
+    intelligenceAnalyzedAt: doc.intelligenceAnalyzedAt ? doc.intelligenceAnalyzedAt.toISOString() : null,
+    generatedAt: doc.generatedAt ? doc.generatedAt.toISOString() : null,
+    generationModel: doc.generationModel || '',
+    rankKey: doc.rankKey ?? null,
     createdAt: doc.createdAt ? doc.createdAt.toISOString() : null,
     updatedAt: doc.updatedAt ? doc.updatedAt.toISOString() : null,
   };
@@ -47,12 +98,20 @@ export async function GET(request) {
     }
 
     const script = await Script.findOne({ sourceIdeaId: ideaId, userId: user.id });
+    const idea = await Idea.findOne({ _id: ideaId, userId: user.id });
+
+    let enrichedIdea = null;
+    if (idea) {
+      const serialized = serializeIdea(idea);
+      const enriched = await enrichIdeasWithLiveSignals([serialized]);
+      enrichedIdea = enriched[0];
+    }
     
     if (!script) {
-      return successResponse({ script: null }, 'No script found for this idea.');
+      return successResponse({ script: null, idea: enrichedIdea }, 'No script found for this idea.');
     }
 
-    return successResponse({ script: serializeScript(script) }, 'Script retrieved successfully');
+    return successResponse({ script: serializeScript(script), idea: enrichedIdea }, 'Script retrieved successfully');
   } catch (error) {
     console.error('Script GET route handler failed:', error);
 

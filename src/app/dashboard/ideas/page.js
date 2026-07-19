@@ -1,42 +1,20 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Loader2, Check, AlertCircle, Plus, Trash2, ArrowRight } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Loader2, AlertCircle, Plus, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-/**
- * Layout Primitives
- */
-function StatusDot({ color = 'violet', pulse = false }) {
-  const colorClass = color === 'red' ? 'bg-red-400/60' : 'bg-violet-400/40';
-  return (
-    <span
-      className={`inline-block h-1.5 w-1.5 rounded-full ${colorClass} ${pulse ? 'animate-pulse' : ''} mr-2.5 align-middle`}
-      aria-hidden="true"
-    />
-  );
-}
+// Shared UI Primitives
+import StatusDot from '@/components/ui/StatusDot';
+import SectionLabel from '@/components/ui/SectionLabel';
+import PageFooter from '@/components/ui/PageFooter';
 
-function SectionLabel({ children }) {
-  return (
-    <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/30 align-middle">
-      {children}
-    </span>
-  );
-}
+// Shared Hooks
+import useCooldownTimer from '@/hooks/useCooldownTimer';
 
-function PageFooter() {
-  return (
-    <footer className="pt-4 border-t border-white/[0.03] mt-10">
-      <div className="flex items-center gap-4 text-[9px] tracking-[0.18em] uppercase text-white/15 select-none">
-        <span>NIVO v1</span>
-        <span className="h-px w-3 bg-white/[0.06]" aria-hidden="true" />
-        <span>Ideas</span>
-      </div>
-    </footer>
-  );
-}
+// Modular Components
+import OpportunityDeck from '@/components/ideas/OpportunityDeck';
 
 export default function IdeasPage() {
   // Page load and global state
@@ -49,7 +27,9 @@ export default function IdeasPage() {
   // Generation status state
   const [genStatus, setGenStatus] = useState('idle'); // idle | generating | success | error
   const [genError, setGenError] = useState('');
-  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  // Cooldown Hook (Single Source of Truth)
+  const { cooldownSeconds, triggerCooldown } = useCooldownTimer('nivo-ideas-cooldown', 60000);
 
   // Card specific loading / error state maps
   const [cardActionStates, setCardActionStates] = useState({}); // { ideaId: 'saving' | 'dismissing' | 'idle' }
@@ -59,32 +39,6 @@ export default function IdeasPage() {
   const [scriptMetadataError, setScriptMetadataError] = useState(false);
 
   const router = useRouter();
-
-  // Cooldown timer interval ref
-  const timerRef = useRef(null);
-
-  // Cooldown calculator and timer trigger
-  const triggerCooldownTimer = useCallback((latestGeneratedTime) => {
-    if (timerRef.current) clearInterval(timerRef.current);
-
-    const checkCooldown = () => {
-      const elapsed = Date.now() - latestGeneratedTime;
-      const cooldownMs = 60000;
-      if (elapsed < cooldownMs) {
-        const remaining = Math.ceil((cooldownMs - elapsed) / 1000);
-        setCooldownSeconds(remaining);
-      } else {
-        setCooldownSeconds(0);
-        if (timerRef.current) {
-          clearInterval(timerRef.current);
-          timerRef.current = null;
-        }
-      }
-    };
-
-    checkCooldown();
-    timerRef.current = setInterval(checkCooldown, 1000);
-  }, []);
 
   // Fetch Ideas and Profile
   const fetchWorkspaceData = useCallback(async () => {
@@ -139,7 +93,8 @@ export default function IdeasPage() {
           const latestTime = Math.max(...generatedIdeas.map(idea => new Date(idea.generatedAt).getTime()));
           const elapsed = Date.now() - latestTime;
           if (elapsed < 60000) {
-            triggerCooldownTimer(latestTime);
+            // Write to localStorage so that the useCooldownTimer hook syncs it up on next render loop
+            localStorage.setItem('nivo-ideas-cooldown', (latestTime + 60000).toString());
           }
         }
       } else {
@@ -171,13 +126,10 @@ export default function IdeasPage() {
       setLoadError('Network error. Check your connection.');
       setProfileState('no_profile');
     }
-  }, [triggerCooldownTimer]);
+  }, []);
 
   useEffect(() => {
     fetchWorkspaceData();
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
   }, [fetchWorkspaceData]);
 
   // Generate Ideas Trigger
@@ -202,8 +154,7 @@ export default function IdeasPage() {
         } else if (errCode === 'IDEA_GENERATION_COOLDOWN') {
           const retryAfter = json.error?.details?.retryAfter || 60;
           errMsg = `New directions can be derived in ${retryAfter} seconds.`;
-          setCooldownSeconds(retryAfter);
-          triggerCooldownTimer(Date.now() - (60 - retryAfter) * 1000);
+          triggerCooldown();
         } else if (errCode === 'INSUFFICIENT_SIGNALS') {
           errMsg = 'NIVO needs stronger creator signals before deriving grounded ideas.';
         } else if (errCode === 'STALE_INTELLIGENCE') {
@@ -227,7 +178,7 @@ export default function IdeasPage() {
       setGenStatus('success');
 
       // Trigger cooldown countdown
-      triggerCooldownTimer(Date.now());
+      triggerCooldown();
       setTimeout(() => setGenStatus('idle'), 3000);
 
     } catch (err) {
@@ -253,13 +204,11 @@ export default function IdeasPage() {
 
         if (errCode === 'IDEA_NOT_CANDIDATE') {
           errMsg = 'This candidate is no longer active.';
-          // Remove stale candidate from local state
           setCandidates(prev => prev.filter(c => c._id !== ideaId));
         } else if (errCode === 'IDEA_NOT_FOUND') {
           errMsg = 'Idea candidate not found.';
           setCandidates(prev => prev.filter(c => c._id !== ideaId));
         } else if (errCode === 'IDEA_ACCEPTANCE_MEMORY_ERROR') {
-          // Re-fetch database state to reconcile partial failure
           errMsg = 'The idea was saved, but NIVO could not update recent generation memory.';
           await fetchWorkspaceData();
         }
@@ -283,14 +232,16 @@ export default function IdeasPage() {
     }
   };
 
-  // Dismiss candidate Idea
-  const handleDismiss = async (ideaId) => {
+  // Dismiss candidate Idea (Supports optional learning feedback reasonKey)
+  const handleDismiss = async (ideaId, reasonKey = null) => {
     setCardActionStates(prev => ({ ...prev, [ideaId]: 'dismissing' }));
     setCardErrors(prev => ({ ...prev, [ideaId]: '' }));
 
     try {
       const res = await fetch(`/api/ideas/${ideaId}`, {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: reasonKey ? JSON.stringify({ reason: reasonKey }) : undefined
       });
       const json = await res.json();
 
@@ -315,6 +266,7 @@ export default function IdeasPage() {
     } catch (err) {
       setCardErrors(prev => ({ ...prev, [ideaId]: 'Network error. Failed to dismiss candidate.' }));
       setCardActionStates(prev => ({ ...prev, [ideaId]: 'idle' }));
+      throw err; // Propagate error so RejectionDrawer knows to stop loading state
     }
   };
 
@@ -347,9 +299,9 @@ export default function IdeasPage() {
     }
   };
 
-  /* ================================================================
-     RENDER STATES
-     ================================================================ */
+  // ----------------------------------------------------------------
+  // RENDER STATES
+  // ----------------------------------------------------------------
 
   // Global Loading State
   if (profileState === 'loading') {
@@ -377,12 +329,12 @@ export default function IdeasPage() {
           <p className="text-[15px] leading-relaxed text-white/40 mt-5 mb-8">
             No creator profile configured. Provide the profile NIVO should observe on the Profile page to begin.
           </p>
-          <a
+          <Link
             href="/dashboard/profile"
             className="inline-flex items-center gap-2 px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase rounded-lg border border-white/[0.08] bg-white/[0.03] text-white/60 hover:text-white/80 hover:bg-white/[0.05] transition-all"
           >
             Go to Profile <ArrowRight className="h-3.5 w-3.5" />
-          </a>
+          </Link>
         </section>
         {loadError && (
           <div className="flex items-center gap-2 text-red-400/60 text-[12px]">
@@ -404,12 +356,12 @@ export default function IdeasPage() {
           <p className="text-[15px] leading-relaxed text-white/40 mt-5 mb-8">
             Creator intelligence needs to be derived before generating directions. Please run intelligence synthesis on the Profile page.
           </p>
-          <a
+          <Link
             href="/dashboard/profile"
             className="inline-flex items-center gap-2 px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase rounded-lg border border-violet-400/25 bg-violet-400/[0.08] text-violet-300/80 hover:bg-violet-400/[0.15] hover:text-violet-200 transition-all"
           >
             Synthesize Intelligence <ArrowRight className="h-3.5 w-3.5" />
-          </a>
+          </Link>
         </section>
       </div>
     );
@@ -452,7 +404,7 @@ export default function IdeasPage() {
             )}
           </button>
 
-          {/* Cooldown or active lock message details */}
+          {/* Cooldown details */}
           {cooldownSeconds > 0 && (
             <span className="text-[10px] text-white/20 select-none">
               Cooldown active: {cooldownSeconds}s remaining
@@ -492,130 +444,14 @@ export default function IdeasPage() {
             </span>
           </div>
         ) : (
-          /* Candidates list (single-column stack for editorial readability) */
-          <div className="flex flex-col gap-6">
-            {candidates.map((cand) => {
-              const isSaving = cardActionStates[cand._id] === 'saving';
-              const isDismissing = cardActionStates[cand._id] === 'dismissing';
-              const isPending = isSaving || isDismissing;
-              const cardError = cardErrors[cand._id];
-
-              return (
-                <article
-                  key={cand._id}
-                  className={`rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 sm:p-6 flex flex-col gap-4 transition-opacity ${
-                    isPending ? 'opacity-40' : 'opacity-100'
-                  }`}
-                >
-                  {/* Metadata header */}
-                  <div className="flex items-center justify-between text-[9px] tracking-[0.15em] uppercase text-white/30 font-medium">
-                    <div>
-                      {cand.contentPillar && <span>{cand.contentPillar}</span>}
-                      {cand.contentPillar && cand.format && <span className="mx-2">/</span>}
-                      {cand.format && <span>{cand.format}</span>}
-                    </div>
-                    {cand.topic && (
-                      <span className="text-violet-300/40 bg-violet-400/[0.02] px-2 py-0.5 rounded border border-violet-400/[0.05]">
-                        {cand.topic}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Title */}
-                  <h2 className="text-base sm:text-lg font-medium text-white/95 leading-snug">
-                    {cand.title}
-                  </h2>
-
-                  {/* Hook Suggestion */}
-                  {cand.hook && (
-                    <div className="border-l border-violet-400/20 bg-violet-400/[0.01] px-4 py-2 text-[14px] italic text-white/70 leading-relaxed font-serif">
-                      {cand.hook}
-                    </div>
-                  )}
-
-                  {/* Concept description */}
-                  {cand.description && (
-                    <p className="text-[15px] leading-[1.65] text-white/65">
-                      {cand.description}
-                    </p>
-                  )}
-
-                  {/* Grounded Reasoning block */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 border-t border-white/[0.02]">
-                    {/* Why this fits you */}
-                    {cand.directionSnapshot && (
-                      <div className="flex flex-col gap-1.5">
-                        <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-white/50">Why this fits you</span>
-                        <p className="text-[14px] leading-relaxed text-white/75">
-                          {cand.directionSnapshot}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Why now */}
-                    {cand.whyNow && (
-                      <div className="flex flex-col gap-1.5">
-                        <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-white/50">Signal context</span>
-                        <p className="text-[14px] leading-relaxed text-white/75">
-                          {cand.whyNow}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Novelty Angle or signal snapshots if available */}
-                  {cand.sourceSignalSnapshots && cand.sourceSignalSnapshots.length > 0 && (
-                    <div className="flex flex-col gap-2 pt-4 border-t border-white/[0.02]">
-                      <span className="text-[9px] tracking-[0.15em] uppercase text-white/30">Supported by</span>
-                      <div className="flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-white/60">
-                        {cand.sourceSignalSnapshots.slice(0, 2).map((sig, idx) => (
-                          <div key={idx} className="flex items-center gap-1.5">
-                            <span className="text-white/80 font-medium">{sig.displayName}</span>
-                            {sig.trend !== 'unknown' && (
-                              <>
-                                <span className="h-px w-2 bg-white/10" />
-                                <span className="text-[9px] tracking-[0.12em] font-mono text-violet-300/70 bg-violet-400/[0.04] px-1 rounded uppercase">
-                                  {sig.trend}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Card level Error territory */}
-                  {cardError && (
-                    <div className="rounded-lg border border-red-500/10 bg-red-500/[0.02] px-3.5 py-2.5 flex items-start gap-2">
-                      <AlertCircle className="h-3.5 w-3.5 text-red-400/60 shrink-0 mt-0.5" />
-                      <span className="text-[11px] text-white/50 leading-relaxed">{cardError}</span>
-                    </div>
-                  )}
-
-                  {/* Candidate Action Buttons */}
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/[0.02] mt-1">
-                    <button
-                      onClick={() => handleDismiss(cand._id)}
-                      disabled={isPending}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[10px] font-medium tracking-[0.08em] uppercase rounded border border-white/[0.06] bg-transparent text-white/40 hover:text-white/70 hover:bg-white/[0.02] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      {isDismissing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-                      <span>Dismiss</span>
-                    </button>
-                    <button
-                      onClick={() => handleAccept(cand._id)}
-                      disabled={isPending}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 text-[10px] font-medium tracking-[0.08em] uppercase rounded border border-violet-400/25 bg-violet-400/[0.08] text-violet-300/80 hover:bg-violet-400/[0.15] hover:text-violet-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
-                      <span>{isSaving ? 'Using Idea...' : 'Use This Idea'}</span>
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+          /* Decoupled Candidates Deck Component */
+          <OpportunityDeck
+            candidates={candidates}
+            cardActionStates={cardActionStates}
+            cardErrors={cardErrors}
+            onAccept={handleAccept}
+            onDismiss={handleDismiss}
+          />
         )}
       </section>
 
@@ -632,8 +468,8 @@ export default function IdeasPage() {
         {!hasSaved ? (
           /* Empty Saved Ideas */
           <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-6 py-8 flex items-center justify-center min-h-[90px] text-center">
-            <span className="text-[11px] tracking-[0.12em] text-white/10 select-none">
-              Choose an idea direction to keep developing it.
+            <span className="text-[12px] text-white/30 max-w-sm leading-relaxed select-none">
+              When you choose an idea, it will move here and become the starting point for script generation.
             </span>
           </div>
         ) : (
@@ -716,7 +552,7 @@ export default function IdeasPage() {
         )}
       </section>
 
-      <PageFooter />
+      <PageFooter segment="Ideas" />
     </div>
   );
 }

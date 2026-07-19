@@ -15,6 +15,48 @@ const ALLOWED_STATUS_VALUES = [
   'performance',
 ];
 
+function serializeEvaluationReport(report) {
+  if (!report) return null;
+  const doc = report.toObject ? report.toObject() : report;
+  return {
+    identityAlignment: doc.identityAlignment ? {
+      score: doc.identityAlignment.score,
+      explanation: doc.identityAlignment.explanation || '',
+    } : null,
+    reasoningAlignment: doc.reasoningAlignment ? {
+      score: doc.reasoningAlignment.score,
+      explanation: doc.reasoningAlignment.explanation || '',
+    } : null,
+    opportunityFidelity: doc.opportunityFidelity ? {
+      score: doc.opportunityFidelity.score,
+      explanation: doc.opportunityFidelity.explanation || '',
+    } : null,
+    generationContractCompliance: doc.generationContractCompliance ? {
+      score: doc.generationContractCompliance.score,
+      explanation: doc.generationContractCompliance.explanation || '',
+      violatedConstraints: doc.generationContractCompliance.violatedConstraints || [],
+    } : null,
+    audienceAlignment: doc.audienceAlignment ? {
+      score: doc.audienceAlignment.score,
+      explanation: doc.audienceAlignment.explanation || '',
+    } : null,
+    novelty: doc.novelty ? {
+      score: doc.novelty.score,
+      explanation: doc.novelty.explanation || '',
+    } : null,
+    strategicValue: doc.strategicValue ? {
+      score: doc.strategicValue.score,
+      explanation: doc.strategicValue.explanation || '',
+    } : null,
+    overallVerdict: doc.overallVerdict ? {
+      recommendation: doc.overallVerdict.recommendation,
+      summary: doc.overallVerdict.summary || '',
+    } : null,
+    validatedLearnings: doc.validatedLearnings || [],
+    rejectionReasons: doc.rejectionReasons || [],
+  };
+}
+
 /**
  * Serializes an Idea document into a plain JSON-safe object.
  */
@@ -58,6 +100,7 @@ function serializeIdea(idea) {
     directionSnapshot: doc.directionSnapshot || '',
     whyNow: doc.whyNow || '',
     noveltyReason: doc.noveltyReason || '',
+    evaluationReport: serializeEvaluationReport(doc.evaluationReport),
     intelligenceAnalyzedAt: doc.intelligenceAnalyzedAt ? doc.intelligenceAnalyzedAt.toISOString() : null,
     generatedAt: doc.generatedAt ? doc.generatedAt.toISOString() : null,
     generationModel: doc.generationModel || '',

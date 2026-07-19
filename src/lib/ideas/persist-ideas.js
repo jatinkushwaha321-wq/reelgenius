@@ -51,6 +51,7 @@ export async function persistIdeas({ profile, userId, candidates, modelName }) {
     whyNow: cand.whyNow,
     noveltyReason: cand.noveltyReason,
     rankKey: cand.rankKey ?? null,
+    evaluationReport: cand.evaluationReport || null,
     intelligenceAnalyzedAt: profile.analyzedAt,
     generatedAt,
     generationModel: modelName,

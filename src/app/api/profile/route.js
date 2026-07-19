@@ -1,6 +1,8 @@
 import connectDB from '@/lib/mongodb';
 import CreatorProfile from '@/models/CreatorProfile';
 import ObservedContent from '@/models/ObservedContent';
+import KnowledgeItem from '@/models/KnowledgeItem';
+import Signal from '@/models/Signal';
 import { getAuthUser } from '@/lib/api-auth';
 import { successResponse, errorResponse } from '@/lib/api-response';
 import { z } from 'zod';
@@ -87,6 +89,31 @@ export async function GET() {
         .filter(f => f.count > 0)
         .sort((a, b) => b.percentage - a.percentage);
     }
+
+    // Query counts for workspace statistics
+    const validatedCount = await KnowledgeItem.countDocuments({ 
+      profileId: profile._id, 
+      lifecycleStatus: 'VALIDATED' 
+    });
+    const totalSignalsCount = await Signal.countDocuments({
+      profileId: profile._id
+    });
+    
+    // Compute strategic confidence based on validated principles and signal density
+    // Standard baseline is 75%, augmented by validated learnings (+3% per item) and active signals
+    let strategicConfidence = 75;
+    if (validatedCount > 0) {
+      strategicConfidence = Math.min(98, 75 + (validatedCount * 3) + Math.min(10, totalSignalsCount));
+    } else {
+      strategicConfidence = Math.min(85, 75 + Math.min(10, totalSignalsCount));
+    }
+    
+    serialized.workspaceStats = {
+      validatedPrinciplesCount: validatedCount,
+      activeSignalsCount: totalSignalsCount,
+      strategicConfidence,
+      lastRefresh: profile.updatedAt || profile.analyzedAt || new Date()
+    };
 
     return successResponse(
       { profile: serialized },

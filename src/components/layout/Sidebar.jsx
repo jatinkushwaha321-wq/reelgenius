@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Lightbulb, User, LogOut, Loader2, FileText } from 'lucide-react';
+import { Activity, Lightbulb, User, LogOut, Loader2, FileText, Compass } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { icon: Activity, label: 'Overview', href: '/dashboard' },
+  { icon: Compass, label: 'Strategy', href: '/dashboard/strategy' },
   { icon: Lightbulb, label: 'Ideas', href: '/dashboard/ideas' },
   { icon: FileText, label: 'Scripts', href: '/dashboard/scripts' },
 ];

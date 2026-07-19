@@ -234,6 +234,10 @@ const ideaSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    evaluationReport: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
   },
   {
     timestamps: true,

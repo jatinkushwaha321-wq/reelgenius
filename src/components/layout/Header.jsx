@@ -13,6 +13,9 @@ export function Header() {
     if (segment === 'dashboard') return 'Overview';
     if (segment === 'ideas') return 'Ideas';
     if (segment === 'profile') return 'Profile';
+    if (segment === 'strategy') return 'Strategy';
+    if (segment === 'scripts') return 'Scripts';
+    if (pathname.includes('/dashboard/scripts/')) return 'Script Studio';
     return 'NIVO';
   };
 

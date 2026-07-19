@@ -1,0 +1,50 @@
+/* NIVO Centralized Design Tokens (Tailwind CSS v4 System) */
+
+@theme {
+  /* Brand color system - restrained violet/blue accent language */
+  --color-nivo-bg: #06060e;
+  --color-nivo-fg: #f0f0f5;
+  
+  --color-nivo-primary: #7c3aed;
+  --color-nivo-primary-hover: #6d28d9;
+  --color-nivo-primary-muted: rgba(124, 58, 237, 0.08);
+  --color-nivo-primary-border: rgba(124, 58, 237, 0.25);
+  
+  --color-nivo-accent: #818cf8;
+  --color-nivo-accent-hover: #6366f1;
+  --color-nivo-accent-muted: rgba(129, 140, 248, 0.04);
+  --color-nivo-accent-border: rgba(129, 140, 248, 0.15);
+
+  /* Semantic status colors */
+  --color-nivo-success: #10b981;
+  --color-nivo-success-muted: rgba(16, 185, 129, 0.05);
+  --color-nivo-success-border: rgba(16, 185, 129, 0.15);
+  
+  --color-nivo-warning: #f59e0b;
+  --color-nivo-warning-muted: rgba(245, 158, 11, 0.05);
+  --color-nivo-warning-border: rgba(245, 158, 11, 0.15);
+  
+  --color-nivo-error: #ef4444;
+  --color-nivo-error-muted: rgba(239, 68, 68, 0.02);
+  --color-nivo-error-border: rgba(239, 68, 68, 0.10);
+
+  /* Surface and structural boundaries */
+  --color-nivo-card: rgba(255, 255, 255, 0.01);
+  --color-nivo-card-border: rgba(255, 255, 255, 0.04);
+  --color-nivo-divider: rgba(255, 255, 255, 0.02);
+  --color-nivo-glass-border: rgba(255, 255, 255, 0.06);
+
+  /* Typography configurations */
+  --font-nivo-sans: var(--font-inter), system-ui, sans-serif;
+  --font-nivo-mono: var(--font-jetbrains-mono), monospace;
+  --font-nivo-serif: var(--font-serif), Georgia, serif;
+  
+  --tracking-nivo-wide: 0.15em;
+  --tracking-nivo-widest: 0.22em;
+  
+  /* Border radii */
+  --radius-nivo-sm: 0.375rem;
+  --radius-nivo-md: 0.5rem;
+  --radius-nivo-lg: 0.75rem;
+  --radius-nivo-xl: 1rem;
+}

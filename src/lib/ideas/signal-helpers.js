@@ -133,6 +133,10 @@ export function deriveEvidencePresentation(evidence) {
  * @returns {string}
  */
 export function deriveSignalContextWording(signal, fallbackText = '') {
+  if (fallbackText && fallbackText.trim().length > 0) {
+    return fallbackText.trim();
+  }
+
   if (!signal) {
     return fallbackText || '';
   }

@@ -1,38 +1,17 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Loader2, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
 
-function StatusDot({ color = 'violet', pulse = false }) {
-  const colorClass = color === 'red' ? 'bg-red-400/60' : 'bg-violet-400/40';
-  return (
-    <span
-      className={`inline-block h-1.5 w-1.5 rounded-full ${colorClass} ${pulse ? 'animate-pulse' : ''} mr-2.5 align-middle`}
-      aria-hidden="true"
-    />
-  );
-}
+// Shared UI Primitives
+import StatusDot from '@/components/ui/StatusDot';
+import SectionLabel from '@/components/ui/SectionLabel';
+import PageFooter from '@/components/ui/PageFooter';
+import ConfidenceMeter from '@/components/ui/ConfidenceMeter';
 
-function SectionLabel({ children }) {
-  return (
-    <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/30 align-middle">
-      {children}
-    </span>
-  );
-}
-
-function PageFooter() {
-  return (
-    <footer className="pt-4 border-t border-white/[0.03] mt-10">
-      <div className="flex items-center gap-4 text-[9px] tracking-[0.18em] uppercase text-white/15 select-none">
-        <span>NIVO v1</span>
-        <span className="h-px w-3 bg-white/[0.06]" aria-hidden="true" />
-        <span>Overview</span>
-      </div>
-    </footer>
-  );
-}
+// Extracted Domain Modules (preserving original UI layout and component separation)
+import StrategicNarrative from '@/components/dashboard/StrategicNarrative';
+import SignalBriefing from '@/components/dashboard/SignalBriefing';
 
 export default function OverviewPage() {
   // states: 'loading' | 'success' | 'error' | 'empty'
@@ -103,7 +82,7 @@ export default function OverviewPage() {
         </div>
       </section>
 
-      {/* ---- Intelligence Status Territory ---- */}
+      {/* ---- Creator Intelligence Status Section ---- */}
       <section>
         <div className="flex items-center gap-2.5 mb-5">
           <span className="h-px flex-1 max-w-[40px] bg-white/[0.06]" aria-hidden="true" />
@@ -129,7 +108,7 @@ export default function OverviewPage() {
         )}
 
         {(profileState === 'success' || profileState === 'empty') && (
-          <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-6 py-6 flex flex-col gap-2">
+          <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-6 py-6 flex flex-col gap-4">
             {!hasIntelligence ? (
               <p className="text-[14px] leading-relaxed text-white/40">
                 NIVO has not yet received creator context for this environment.
@@ -137,13 +116,41 @@ export default function OverviewPage() {
               </p>
             ) : (
               <>
-                <span className="text-[13px] font-medium text-white/80 uppercase tracking-widest">
-                  Creator Intelligence Active
-                </span>
-                <span className="text-[11px] text-white/40">
-                  Synthesized on {new Date(profile.analyzedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-                </span>
-                {allTrendsUnknown && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.02] pb-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[13px] font-medium text-white/80 uppercase tracking-widest">
+                      Creator Intelligence Active
+                    </span>
+                    <span className="text-[11px] text-white/40">
+                      Last refreshed on {new Date(profile.workspaceStats?.lastRefresh || profile.updatedAt || profile.analyzedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  {profile.workspaceStats && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <ConfidenceMeter score={profile.workspaceStats.strategicConfidence} verdict="APPROVE" />
+                    </div>
+                  )}
+                </div>
+                
+                {profile.workspaceStats && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 pt-1">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-white/40">Active Signals</span>
+                      <span className="text-xl font-semibold text-white/95 font-mono">{profile.workspaceStats.activeSignalsCount}</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-white/40">Validated Principles</span>
+                      <span className="text-xl font-semibold text-white/95 font-mono">{profile.workspaceStats.validatedPrinciplesCount}</span>
+                    </div>
+                    <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
+                      <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-white/40">Strategic Status</span>
+                      <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-violet-300/60 bg-violet-400/[0.04] border border-violet-400/[0.08] px-2.5 py-0.5 rounded w-fit mt-1 select-none">
+                        Validated
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {allTrendsUnknown && !profile.workspaceStats && (
                   <span className="text-[11px] text-white/20">
                     Trend indicators are derived from repeated observations over time.
                   </span>
@@ -154,23 +161,29 @@ export default function OverviewPage() {
         )}
       </section>
 
-      {/* ---- Signal Territory ---- */}
-      <section>
-        <div className="flex items-center gap-2.5 mb-5">
-          <span className="h-px flex-1 max-w-[40px] bg-white/[0.06]" aria-hidden="true" />
-          <span className="text-[9px] font-medium tracking-[0.22em] uppercase text-white/20">
-            Signals
-          </span>
-          <span className="h-px flex-1 bg-white/[0.06]" aria-hidden="true" />
-        </div>
-
-        {signalsState === 'loading' && (
+      {/* ---- Signals Section ---- */}
+      {signalsState === 'loading' ? (
+        <section>
+          <div className="flex items-center gap-2.5 mb-5">
+            <span className="h-px flex-1 max-w-[40px] bg-white/[0.06]" aria-hidden="true" />
+            <span className="text-[9px] font-medium tracking-[0.22em] uppercase text-white/20">
+              Signals
+            </span>
+            <span className="h-px flex-1 bg-white/[0.06]" aria-hidden="true" />
+          </div>
           <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-6 py-10 flex items-center justify-center min-h-[140px]">
             <Loader2 className="h-5 w-5 animate-spin text-white/20" />
           </div>
-        )}
-
-        {signalsState === 'error' && (
+        </section>
+      ) : signalsState === 'error' ? (
+        <section>
+          <div className="flex items-center gap-2.5 mb-5">
+            <span className="h-px flex-1 max-w-[40px] bg-white/[0.06]" aria-hidden="true" />
+            <span className="text-[9px] font-medium tracking-[0.22em] uppercase text-white/20">
+              Signals
+            </span>
+            <span className="h-px flex-1 bg-white/[0.06]" aria-hidden="true" />
+          </div>
           <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-6 py-10 flex flex-col gap-3 items-center justify-center min-h-[140px]">
             <span className="text-[11px] tracking-[0.15em] uppercase text-white/15 select-none">
               SIGNALS UNAVAILABLE
@@ -179,70 +192,34 @@ export default function OverviewPage() {
               Creator Signals could not be loaded right now.
             </span>
           </div>
-        )}
+        </section>
+      ) : (
+        <SignalBriefing signals={signals} />
+      )}
 
-        {signalsState === 'empty' && (
-          <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-6 py-10 flex flex-col gap-3 items-center justify-center min-h-[140px]">
-            <span className="text-[11px] tracking-[0.15em] uppercase text-white/15 select-none">
-              AWAITING CREATOR SIGNAL
+      {/* ---- Direction Section (The Narrative Layer) ---- */}
+      {profileState === 'loading' ? (
+        <section>
+          <div className="flex items-center gap-2.5 mb-5">
+            <span className="h-px flex-1 max-w-[40px] bg-white/[0.06]" aria-hidden="true" />
+            <span className="text-[9px] font-medium tracking-[0.22em] uppercase text-white/20">
+              Direction
             </span>
-            <span className="text-[11px] text-white/10 select-none">
-              NIVO has not yet derived active creator patterns for this workspace.
-            </span>
+            <span className="h-px flex-1 bg-white/[0.06]" aria-hidden="true" />
           </div>
-        )}
-
-        {signalsState === 'success' && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {signals.map((sig) => (
-                <article key={sig.id} className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-[15px] font-medium text-white/90 leading-snug">
-                      {sig.displayName}
-                    </h3>
-                    {sig.trend !== 'unknown' && (
-                      <span className="text-[9px] font-medium tracking-[0.15em] uppercase text-violet-300/60 bg-violet-400/[0.04] px-1.5 py-0.5 rounded shrink-0">
-                        {sig.trend}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="flex flex-col gap-1.5 mt-1 border-t border-white/[0.02] pt-3">
-                    <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-white/50">Direction</span>
-                    <p className="text-[14px] leading-relaxed text-white/75">
-                      {sig.directionImplication}
-                    </p>
-                  </div>
-                </article>
-              ))}
-            </div>
-            {allTrendsUnknown && (
-              <span className="text-[11px] text-white/15 mt-3 select-none">
-                Signal trends are computed from longitudinal observations.
-              </span>
-            )}
-          </>
-        )}
-      </section>
-
-      {/* ---- Direction Territory ---- */}
-      <section>
-        <div className="flex items-center gap-2.5 mb-5">
-          <span className="h-px flex-1 max-w-[40px] bg-white/[0.06]" aria-hidden="true" />
-          <span className="text-[9px] font-medium tracking-[0.22em] uppercase text-white/20">
-            Direction
-          </span>
-          <span className="h-px flex-1 bg-white/[0.06]" aria-hidden="true" />
-        </div>
-
-        {profileState === 'loading' && (
           <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-6 py-8 flex items-center justify-center min-h-[100px]">
             <Loader2 className="h-5 w-5 animate-spin text-white/20" />
           </div>
-        )}
-
-        {profileState === 'error' && (
+        </section>
+      ) : profileState === 'error' ? (
+        <section>
+          <div className="flex items-center gap-2.5 mb-5">
+            <span className="h-px flex-1 max-w-[40px] bg-white/[0.06]" aria-hidden="true" />
+            <span className="text-[9px] font-medium tracking-[0.22em] uppercase text-white/20">
+              Direction
+            </span>
+            <span className="h-px flex-1 bg-white/[0.06]" aria-hidden="true" />
+          </div>
           <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-6 py-8 flex flex-col items-center justify-center min-h-[100px] gap-3">
             <span className="text-[11px] tracking-[0.15em] uppercase text-white/15 select-none">
               DIRECTION UNAVAILABLE
@@ -251,48 +228,12 @@ export default function OverviewPage() {
               Creator direction could not be loaded right now.
             </span>
           </div>
-        )}
+        </section>
+      ) : (
+        <StrategicNarrative direction={profile ? profile.strategicDirection : ''} />
+      )}
 
-        {(profileState === 'success' || profileState === 'empty') && (
-          <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-6 py-8 flex flex-col gap-6 min-h-[100px]">
-            {!hasIntelligence ? (
-              <div className="flex flex-col items-center justify-center gap-3 w-full h-full min-h-[60px]">
-                <span className="text-[11px] tracking-[0.15em] uppercase text-white/15 select-none">
-                  NO DIRECTION DERIVED
-                </span>
-                <span className="text-[11px] text-white/10 select-none">
-                  NIVO has not yet formed a strategic direction from the current creator context.
-                </span>
-              </div>
-            ) : !profile.strategicDirection ? (
-              <div className="flex flex-col items-center justify-center gap-3 w-full h-full min-h-[60px]">
-                <span className="text-[11px] tracking-[0.15em] uppercase text-white/15 select-none">
-                  DIRECTION NOT YET DERIVED
-                </span>
-                <span className="text-[11px] text-white/10 select-none">
-                  NIVO requires additional signal evidence to synthesize a strategic direction.
-                </span>
-              </div>
-            ) : (
-              <>
-                <p className="text-[15px] leading-relaxed text-white/75 whitespace-pre-wrap">
-                  {profile.strategicDirection}
-                </p>
-                <div className="pt-4 border-t border-white/[0.02] flex justify-end">
-                  <Link
-                    href="/dashboard/ideas"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 text-[11px] font-medium tracking-[0.1em] uppercase rounded-lg border border-violet-400/25 bg-violet-400/[0.08] text-violet-300/80 hover:bg-violet-400/[0.15] hover:text-violet-200 transition-all"
-                  >
-                    Explore Ideas <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-      </section>
-
-      <PageFooter />
+      <PageFooter segment="Overview" />
     </div>
   );
 }
