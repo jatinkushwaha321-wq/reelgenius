@@ -11,12 +11,32 @@ import EvidenceCitation from '@/components/ui/EvidenceCitation';
  * @param {Array} [props.fallbackSignals=[]] - Fallback signals to compute scores from if report is missing
  */
 export default function EvaluatorDetails({ report, fallbackSignals = [] }) {
-  const score = report?.overallVerdict?.score ?? null;
-  const verdict = report?.overallVerdict?.recommendation ?? 'APPROVE';
-  const strengths = report?.strengths || [];
-  const citations = report?.appliedKnowledgeItems || [];
+  const getDerivedScore = (rep) => {
+    if (!rep) return null;
+    const dimensions = [
+      rep.identityAlignment?.score,
+      rep.reasoningAlignment?.score,
+      rep.opportunityFidelity?.score,
+      rep.generationContractCompliance?.score,
+      rep.audienceAlignment?.score,
+      rep.novelty?.score,
+      rep.strategicValue?.score,
+    ].filter(s => typeof s === 'number');
+    
+    if (dimensions.length === 0) {
+      return rep.overallVerdict?.recommendation === 'APPROVE' ? 85 : 40;
+    }
+    
+    const sum = dimensions.reduce((acc, val) => acc + val, 0);
+    return Math.round(sum / dimensions.length);
+  };
 
   const hasReport = !!report;
+  const score = hasReport ? getDerivedScore(report) : null;
+  const verdict = report?.overallVerdict?.recommendation ?? 'APPROVE';
+  const strengths = report?.validatedLearnings || [];
+  const citations = report?.validatedLearnings || [];
+
   const displayScore = hasReport 
     ? score 
     : fallbackSignals.length > 0 
@@ -28,8 +48,8 @@ export default function EvaluatorDetails({ report, fallbackSignals = [] }) {
 
   // Creator-facing explanation instead of just raw numbers
   const getVerdictExplanation = () => {
-    if (report?.overallVerdict?.reasoning) {
-      return report.overallVerdict.reasoning;
+    if (report?.overallVerdict?.summary) {
+      return report.overallVerdict.summary;
     }
     if (strengths && strengths.length > 0) {
       return strengths[0];
@@ -57,11 +77,6 @@ export default function EvaluatorDetails({ report, fallbackSignals = [] }) {
     }
   };
 
-  const getFriendlyCitationLabel = (c) => {
-    if (c.statement) return c.statement;
-    return 'Validated principle';
-  };
-
   return (
     <div className="flex flex-col gap-3 pt-3 border-t border-white/[0.02] text-[12.5px]">
       {/* Alignment Header & Metric Badge */}
@@ -81,10 +96,10 @@ export default function EvaluatorDetails({ report, fallbackSignals = [] }) {
           <span className="text-[9.5px] font-medium tracking-[0.1em] uppercase text-white/40">Verified Indicators</span>
           <ul className="flex flex-col gap-1 pl-1">
             {strengths.slice(0, 2).map((st, idx) => (
-              <li key={idx} className="text-[12px] text-white/50 flex items-start gap-2">
-                <span className="text-violet-400 shrink-0 select-none">✓</span>
-                <span className="leading-snug">{st}</span>
-              </li>
+               <li key={idx} className="text-[12px] text-white/50 flex items-start gap-2">
+                 <span className="text-violet-400 shrink-0 select-none">✓</span>
+                 <span className="leading-snug">{st}</span>
+               </li>
             ))}
           </ul>
         </div>
@@ -96,12 +111,12 @@ export default function EvaluatorDetails({ report, fallbackSignals = [] }) {
           <span className="text-[9.5px] font-medium tracking-[0.1em] uppercase text-white/40">Evidence Anchors</span>
           <div className="flex flex-wrap gap-1.5">
             {hasReport ? (
-              citations.map((c, idx) => (
+              citations.map((learning, idx) => (
                 <EvidenceCitation 
                   key={idx} 
-                  citationCode={c.citationCode ? `Principle ${c.citationCode}` : 'Validated Principle'}
-                  label={getFriendlyCitationLabel(c)}
-                  strength={c.strength}
+                  citationCode="Validated Principle"
+                  label={learning}
+                  strength={80}
                 />
               ))
             ) : (
