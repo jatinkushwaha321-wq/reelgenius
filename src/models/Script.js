@@ -30,6 +30,44 @@ const beatSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const sourceSignalSnapshotSchema = new mongoose.Schema(
+  {
+    key: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    displayName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    strength: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 100,
+    },
+    confidence: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 100,
+    },
+    trend: {
+      type: String,
+      required: true,
+      enum: ['unknown', 'rising', 'stable', 'falling'],
+    },
+    directionImplication: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+  },
+  { _id: false }
+);
+
 const scriptSchema = new mongoose.Schema(
   {
     userId: {
@@ -91,6 +129,22 @@ const scriptSchema = new mongoose.Schema(
           trim: true,
         },
       ],
+      directionSnapshot: {
+        type: String,
+        trim: true,
+        maxlength: 500,
+      },
+      whyNow: {
+        type: String,
+        trim: true,
+        maxlength: 300,
+      },
+      noveltyReason: {
+        type: String,
+        trim: true,
+        maxlength: 300,
+      },
+      sourceSignalSnapshots: [sourceSignalSnapshotSchema],
     },
     hook: {
       type: String,

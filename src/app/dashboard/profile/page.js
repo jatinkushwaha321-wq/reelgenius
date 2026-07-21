@@ -581,11 +581,9 @@ export default function ProfilePage() {
                           ))}
                         </ul>
                       ) : (
-                        <ul className="list-disc pl-5 text-[14px] leading-[1.65] text-white/75 flex flex-col gap-1.5 mt-1">
-                          <li>Primary: Reels</li>
-                          <li>Secondary: Carousels</li>
-                          <li>Occasional: Static Posts</li>
-                        </ul>
+                        <span className="text-[13px] leading-[1.65] text-white/40 mt-1">
+                          No content observations available yet. Run an observation to identify your dominant content formats.
+                        </span>
                       )}
                     </div>
                   </div>
@@ -602,6 +600,19 @@ export default function ProfilePage() {
                           {profile.brandIdentity.tone.map((t, i) => (
                             <span key={i} className="px-2.5 py-1 text-[11px] font-medium text-white/70 bg-white/[0.04] border border-white/[0.08] rounded">
                               {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {profile.brandIdentity?.vocabulary && profile.brandIdentity.vocabulary.length > 0 && (
+                      <div className="flex flex-col gap-2 mt-1">
+                        <span className="text-[11px] font-medium text-white/50 uppercase tracking-widest">Vocabulary</span>
+                        <div className="flex flex-wrap gap-2">
+                          {profile.brandIdentity.vocabulary.map((vocab, i) => (
+                            <span key={i} className="px-2.5 py-1 text-[11px] font-medium text-white/70 bg-white/[0.04] border border-white/[0.08] rounded">
+                              {vocab}
                             </span>
                           ))}
                         </div>

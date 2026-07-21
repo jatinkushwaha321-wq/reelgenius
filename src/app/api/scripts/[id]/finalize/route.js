@@ -9,10 +9,30 @@ const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
 function serializeScript(script) {
   const doc = script.toObject ? script.toObject() : script;
+  const snapshot = doc.ideaSnapshot || {};
   return {
     _id: doc._id.toString(),
     sourceIdeaId: doc.sourceIdeaId.toString(),
-    ideaSnapshot: doc.ideaSnapshot,
+    ideaSnapshot: {
+      title: snapshot.title || '',
+      topic: snapshot.topic || '',
+      description: snapshot.description || '',
+      hook: snapshot.hook || '',
+      format: snapshot.format || '',
+      contentPillar: snapshot.contentPillar || '',
+      sourceSignalKeys: snapshot.sourceSignalKeys || [],
+      directionSnapshot: snapshot.directionSnapshot || '',
+      whyNow: snapshot.whyNow || '',
+      noveltyReason: snapshot.noveltyReason || '',
+      sourceSignalSnapshots: (snapshot.sourceSignalSnapshots || []).map(sig => ({
+        key: sig.key,
+        displayName: sig.displayName,
+        strength: sig.strength,
+        confidence: sig.confidence,
+        trend: sig.trend,
+        directionImplication: sig.directionImplication,
+      })),
+    },
     hook: doc.hook,
     beats: doc.beats,
     cta: doc.cta,
